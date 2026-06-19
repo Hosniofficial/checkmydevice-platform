@@ -8,6 +8,7 @@ import {
 import { StatusBadge, Spinner } from '../../components/ui/index.jsx';
 import { useAuthStore } from '../../store/auth.store.js';
 import api from '../../lib/api.js';
+import { resolveAssetUrl } from '../../lib/config.js';
 import toast from 'react-hot-toast';
 import { getCountryName } from '../../lib/countries.js';
 import { formatDate, formatDateTime } from '../../lib/format.js';
@@ -223,11 +224,11 @@ export default function AdminReportDetail() {
         <SectionCard title={`المستندات المرفقة (${report.documents.length})`} icon={ImageIcon} iconColor="text-purple-600">
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {report.documents.map(d => (
-              <a key={d.id} href={`http://localhost:5000${d.file_url}`}
+              <a key={d.id} href={resolveAssetUrl(d.file_url)}
                 target="_blank" rel="noopener noreferrer"
                 className="aspect-square rounded-xl overflow-hidden bg-gray-100 block hover:opacity-80 transition-opacity border border-gray-200 group relative">
                 <img
-                  src={`http://localhost:5000${d.file_url}`}
+                  src={resolveAssetUrl(d.file_url)}
                   alt={d.doc_type}
                   className="w-full h-full object-cover"
                   onError={e => { e.target.style.display = 'none'; }}

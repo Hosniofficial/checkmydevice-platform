@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge, Spinner, ConfirmDialog } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
+import { resolveAssetUrl } from '../lib/config.js';
 import toast from 'react-hot-toast';
 import { getCountryName } from '../lib/countries.js';
 import { formatDate } from '../lib/format.js';
@@ -38,11 +39,9 @@ function SectionCard({ title, icon: Icon, iconColor = 'text-primary-600', childr
   );
 }
 
-// Backend serves uploads from root — prepend base URL only if path starts with /uploads
+// Backend serves uploads from root — use resolveAssetUrl for correct URL
 function resolveUrl(url) {
-  if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `http://localhost:5000${url}`;
+  return resolveAssetUrl(url);
 }
 
 export default function ReportDetailPage() {
