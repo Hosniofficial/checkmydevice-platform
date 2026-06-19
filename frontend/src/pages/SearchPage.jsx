@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import {
   Search, AlertTriangle, CheckCircle, Info, Phone, Mail,
   Smartphone, Laptop, Tablet, Gift, ShieldCheck, ShieldAlert,
-  HelpCircle, Zap, Clock,
+  HelpCircle, Clock,
 } from 'lucide-react';
 import api from '../lib/api.js';
 import { Spinner } from '../components/ui/index.jsx';
@@ -157,8 +157,7 @@ export default function SearchPage() {
         {/* IMEI hint */}
         {queryType === 'imei' && (
           <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-            <Zap className="w-3 h-3" />
-            اتصل بـ <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">*#06#</span> للحصول على رقم IMEI
+            💡 اتصل بـ <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">*#06#</span> للحصول على رقم IMEI
           </p>
         )}
 
@@ -204,14 +203,12 @@ export default function SearchPage() {
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
                     <DeviceTypeIcon type={result.device_info.device_type} className="w-4 h-4 text-gray-500" />
                     معلومات الجهاز
-                    <span className="text-xs text-gray-400 font-normal mr-auto flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-yellow-500" /> من الكاش
-                    </span>
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
                       ['الماركة',     result.device_info.brand],
                       ['الموديل',     result.device_info.model],
+                      ['الكود التقني', result.device_info.model_code],
                       ['النوع',       DEVICE_TYPE[result.device_info.device_type]?.label || result.device_info.device_type],
                       ['السعة',       result.device_info.storage],
                       ['الشبكة',      result.device_info.network],
