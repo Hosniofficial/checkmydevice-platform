@@ -1,9 +1,7 @@
-// API base URL — used for direct asset URLs (uploads/images)
-// In dev: Vite proxy handles /api and /uploads via localhost:5000
-// In prod: served from the same backend domain
-export const API_BASE =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? 'http://localhost:5000' : '');
+// Backend base URL
+// - Development: empty string (Vite proxy handles /uploads → localhost:5000)
+// - Production:  VITE_API_URL env var set in Vercel dashboard
+export const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export function resolveAssetUrl(path) {
   if (!path) return '';

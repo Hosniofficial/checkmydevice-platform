@@ -44,7 +44,16 @@ app.use(helmet({
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: (process.env.FRONTEND_URL || 'http://localhost:3000').split(','),
+  origin: (origin, callback) => {
+    const allowed = (process.env.FRONTEND_URL || 'http://localhost:3000')
+      .split(',')
+      .map(u => u.trim());
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin || allowed.includes(origin)) return callback(null, true);
+    // Allow any *.vercel.app subdomain for preview deployments
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
