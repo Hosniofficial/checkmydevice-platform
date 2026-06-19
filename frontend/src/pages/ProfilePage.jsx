@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Key, Trash2, CheckCircle } from 'lucide-react';
+import { User, Key, Trash2, CheckCircle, Mail, AlertCircle, Send } from 'lucide-react';
 import { z } from 'zod';
 import { changePasswordSchema } from '../lib/validation.js';
 import { useAuthStore } from '../store/auth.store.js';
@@ -26,6 +26,8 @@ export default function ProfilePage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const isSuperAdmin = user?.role === 'super_admin';
   const TABS = [
@@ -88,6 +90,25 @@ export default function ProfilePage() {
     }
   };
 
+  // ── Resend verification ───────────────────────────────────────
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      await api.post('/auth/resend-verification');
+      setVerificationSent(true);
+      toast.success('تم إرسال رابط التفعيل — تحقق من بريدك الإلكتروني');
+    } catch (err) {
+      const code = err.response?.data?.error?.code;
+      if (code === 'TOO_MANY_REQUESTS') {
+        toast.error('انتظر دقيقتين قبل إعادة الإرسال');
+      } else {
+        toast.error(err.response?.data?.error?.message_ar || 'حدث خطأ');
+      }
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
   // ── Delete account ────────────────────────────────────────────
   const handleDeleteAccount = async () => {
     try {
@@ -103,6 +124,36 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">إعدادات الحساب</h1>
+
+      {/* Email verification banner */}
+      {!user?.email_verified && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+            <AlertCircle className="w-5 h-5 text-amber-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800">بريدك الإلكتروني غير مفعّل</p>
+            <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
+              تحقق من صندوق الوارد أو Spam في <span dir="ltr" className="font-mono">{user?.email}</span> واضغط على رابط التفعيل.
+            </p>
+            {verificationSent ? (
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-green-700 font-medium">
+                <CheckCircle className="w-3.5 h-3.5" />
+                تم الإرسال — تحقق من بريدك
+              </div>
+            ) : (
+              <button
+                onClick={handleResendVerification}
+                disabled={resendingVerification}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60">
+                {resendingVerification
+                  ? <><Spinner size={12} /> جاري الإرسال...</>
+                  : <><Send className="w-3.5 h-3.5" /> إعادة إرسال رابط التفعيل</>}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* User info bar */}
       <div className="card flex items-center gap-4 mb-6">

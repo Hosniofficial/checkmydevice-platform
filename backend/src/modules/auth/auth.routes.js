@@ -157,6 +157,37 @@ router.post('/reset-password', async (req, res) => {
   ok(res, { message_ar: 'تم إعادة تعيين كلمة المرور بنجاح.' });
 });
 
+// POST /auth/resend-verification
+router.post('/resend-verification', authenticate, async (req, res) => {
+  const user = await query('SELECT id, email, full_name, email_verified FROM users WHERE id=$1', [req.user.id]);
+  if (!user.rows.length) return err(res, 'NOT_FOUND', 'المستخدم غير موجود', '', 404);
+
+  if (user.rows[0].email_verified) {
+    return err(res, 'ALREADY_VERIFIED', 'البريد الإلكتروني مفعّل بالفعل');
+  }
+
+  // Rate limit — max 1 resend per 2 minutes
+  const recent = await query(
+    `SELECT created_at FROM email_verifications
+     WHERE user_id=$1 AND created_at > NOW() - INTERVAL '2 minutes'
+     ORDER BY created_at DESC LIMIT 1`,
+    [req.user.id]
+  );
+  if (recent.rows.length) {
+    return err(res, 'TOO_MANY_REQUESTS', 'انتظر دقيقتين قبل إعادة الإرسال');
+  }
+
+  const token  = crypto.randomBytes(32).toString('hex');
+  const expiry = new Date(Date.now() + 86400000); // 24h
+  await query(
+    'INSERT INTO email_verifications (user_id, token, expires_at) VALUES ($1,$2,$3)',
+    [req.user.id, token, expiry]
+  );
+
+  sendVerificationEmail(user.rows[0].email, user.rows[0].full_name, token).catch(console.error);
+  ok(res, { message_ar: 'تم إرسال رابط التفعيل إلى بريدك الإلكتروني.' });
+});
+
 // GET /auth/me
 router.get('/me', authenticate, async (req, res) => {
   const result = await query(
