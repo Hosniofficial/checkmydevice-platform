@@ -49,7 +49,8 @@ export async function connectRedis() {
   client = createClient({
     url,
     socket: {
-      connectTimeout:    3000,
+      connectTimeout:    5000,
+      tls: url.startsWith('rediss://'), // enable TLS for Upstash
       reconnectStrategy: (attempts) => {
         if (attempts > 5) {
           console.warn('[Redis] Max reconnect attempts reached — running without cache');

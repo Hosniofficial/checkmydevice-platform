@@ -23,7 +23,7 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 30d
       - key: REDIS_URL
-        sync: false          # set manually (Upstash)
+        sync: false          # rediss://default:PASSWORD@frank-aphid-129728.upstash.io:6379
       - key: FRONTEND_URL
         value: https://checkmydevice.online
       - key: IMEI_PROVIDER
