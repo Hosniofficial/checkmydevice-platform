@@ -1,23 +1,24 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST  || 'smtp.gmail.com',
-  port:   parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Create transporter lazily — env vars guaranteed loaded at call time
+function getTransporter() {
+  return nodemailer.createTransport({
+    host:   process.env.SMTP_HOST  || 'smtp.gmail.com',
+    port:   parseInt(process.env.SMTP_PORT || '587'),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
 
-const FROM = process.env.EMAIL_FROM || 'CheckMyDevice <noreply@checkmydevice.com>';
+const FROM = () => process.env.EMAIL_FROM || 'CheckMyDevice <noreply@checkmydevice.com>';
 
 export async function sendVerificationEmail(email, name, token) {
   const url = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-  await transporter.sendMail({
-    from: FROM, to: email,
+  await getTransporter().sendMail({
+    from: FROM(), to: email,
     subject: 'تفعيل حسابك في CheckMyDevice',
     html: `
       <div dir="rtl" style="font-family:Arial;max-width:480px;margin:auto">
@@ -33,8 +34,8 @@ export async function sendVerificationEmail(email, name, token) {
 
 export async function sendPasswordResetEmail(email, name, token) {
   const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  await transporter.sendMail({
-    from: FROM, to: email,
+  await getTransporter().sendMail({
+    from: FROM(), to: email,
     subject: 'إعادة تعيين كلمة المرور — CheckMyDevice',
     html: `
       <div dir="rtl" style="font-family:Arial;max-width:480px;margin:auto">
@@ -49,8 +50,8 @@ export async function sendPasswordResetEmail(email, name, token) {
 }
 
 export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo, searcherInfo) {
-  await transporter.sendMail({
-    from: FROM, to: ownerEmail,
+  await getTransporter().sendMail({
+    from: FROM(), to: ownerEmail,
     subject: '⚠️ تنبيه: تم البحث عن جهازك المسروق',
     html: `
       <div dir="rtl" style="font-family:Arial;max-width:480px;margin:auto">
@@ -74,8 +75,8 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
 
 export async function sendReportStatusEmail(email, name, status, reportRef, adminNote) {
   const isApproved = status === 'approved';
-  await transporter.sendMail({
-    from: FROM, to: email,
+  await getTransporter().sendMail({
+    from: FROM(), to: email,
     subject: `${isApproved ? '✅' : '❌'} تحديث حالة بلاغك — CheckMyDevice`,
     html: `
       <div dir="rtl" style="font-family:Arial;max-width:480px;margin:auto">
