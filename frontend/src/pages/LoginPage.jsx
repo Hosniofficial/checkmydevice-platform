@@ -15,7 +15,13 @@ export default function LoginPage() {
   const navigate    = useNavigate();
   const location    = useLocation();
 
-  // Redirect already-logged-in users
+  // ✅ ALL hooks must be called before any early return
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode:     'onBlur',
+  });
+
+  // Redirect already-logged-in users (after all hooks)
   if (user) {
     const dest = ['admin', 'super_admin'].includes(user.role) ? '/admin' : '/dashboard';
     return <Navigate to={dest} replace />;
@@ -23,11 +29,6 @@ export default function LoginPage() {
 
   // Redirect to original page after login
   const from = location.state?.from || null;
-
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({
-    resolver: zodResolver(loginSchema),
-    mode:     'onBlur',
-  });
 
   const onSubmit = async (data) => {
     setLoading(true);

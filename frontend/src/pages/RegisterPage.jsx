@@ -17,17 +17,18 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  // Redirect already-logged-in users
-  if (user) {
-    const dest = ['admin', 'super_admin'].includes(user.role) ? '/admin' : '/dashboard';
-    return <Navigate to={dest} replace />;
-  }
-
+  // ✅ ALL hooks before any early return
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(registerSchema),
     mode:     'onBlur',
     defaultValues: { country_code: 'EG' },
   });
+
+  // Redirect already-logged-in users (after all hooks)
+  if (user) {
+    const dest = ['admin', 'super_admin'].includes(user.role) ? '/admin' : '/dashboard';
+    return <Navigate to={dest} replace />;
+  }
 
   const onSubmit = async (data) => {
     setLoading(true);
