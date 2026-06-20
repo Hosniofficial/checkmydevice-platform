@@ -11,7 +11,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach token
+// Initialize token from localStorage on app load
+const savedToken = localStorage.getItem('access_token');
+if (savedToken) {
+  api.defaults.headers.common.Authorization = `Bearer ${savedToken}`;
+}
+
+// Attach token on every request (picks up fresh token after refresh)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -23,21 +29,32 @@ api.interceptors.response.use(
   r => r,
   async (error) => {
     const original = error.config;
-    const url = original?.url || '';
-    const isAuthEndpoint = /\/auth\/(login|register|forgot-password|reset-password|refresh)/.test(url);
+    const url      = original?.url || '';
+
+    // Skip auth endpoints to avoid infinite loops
+    const isAuthEndpoint = /\/(login|register|forgot-password|reset-password|refresh|resend-verification)/.test(url);
 
     if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
         const refresh = localStorage.getItem('refresh_token');
-        if (!refresh) throw new Error('no refresh');
+        if (!refresh) throw new Error('no refresh token');
+
         const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refresh });
-        localStorage.setItem('access_token',  data.data.access_token);
+        const newToken = data.data.access_token;
+
+        localStorage.setItem('access_token',  newToken);
         localStorage.setItem('refresh_token', data.data.refresh_token);
-        original.headers.Authorization = `Bearer ${data.data.access_token}`;
+
+        // Update the failed request's auth header and retry
+        original.headers = original.headers || {};
+        original.headers.Authorization = `Bearer ${newToken}`;
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+
         return api(original);
       } catch {
         localStorage.clear();
+        delete api.defaults.headers.common.Authorization;
         if (!window.location.pathname.startsWith('/login')) {
           window.location.href = '/login';
         }
