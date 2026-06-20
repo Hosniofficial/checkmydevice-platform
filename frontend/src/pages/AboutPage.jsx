@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Target, Users, Globe, CheckCircle, Heart, Zap, Lock } from 'lucide-react';
+import { Target, Users, Globe, CheckCircle, Heart, Zap, Lock, Shield } from 'lucide-react';
 
 const STATS = [
   { value: '50,000+', label: 'جهاز مسجل' },
