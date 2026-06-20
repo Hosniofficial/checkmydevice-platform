@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Shield } from 'lucide-react';
+
 import { loginSchema } from '../lib/validation.js';
 import { Field, Spinner } from '../components/ui/index.jsx';
 import PasswordInput from '../components/ui/PasswordInput.jsx';
@@ -49,9 +49,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-7 h-7 text-white" />
-          </div>
+          <img src="/Logo.png" alt="CheckMyDevice" className="w-14 h-14 object-contain rounded-2xl mx-auto mb-4" />
           <h1 className="text-2xl font-bold">تسجيل الدخول</h1>
           <p className="text-gray-500 text-sm mt-1">أهلاً بك في CheckMyDevice</p>
         </div>

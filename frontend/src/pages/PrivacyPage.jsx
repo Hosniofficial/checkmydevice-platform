@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Mail, Calendar } from 'lucide-react';
+import { Mail, Calendar } from 'lucide-react';
 
 const LAST_UPDATED = '15 يونيو 2026';
 
@@ -21,9 +21,7 @@ export default function PrivacyPage() {
     <div className="max-w-3xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Shield className="w-7 h-7 text-white" />
-        </div>
+        <img src="/Logo.png" alt="CheckMyDevice" className="w-14 h-14 object-contain rounded-2xl mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-gray-900 mb-2">سياسة الخصوصية</h1>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
           <Calendar className="w-4 h-4" />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Target, Users, Globe, CheckCircle, Heart, Zap, Lock } from 'lucide-react';
+import { Target, Users, Globe, CheckCircle, Heart, Zap, Lock } from 'lucide-react';
 
 const STATS = [
   { value: '50,000+', label: 'جهاز مسجل' },
@@ -30,9 +30,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="bg-gradient-to-bl from-primary-700 to-blue-900 text-white py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Shield className="w-8 h-8" />
-          </div>
+          <img src="/Logo.png" alt="CheckMyDevice" className="w-14 h-14 object-contain rounded-2xl mx-auto mb-6" />
           <h1 className="text-4xl font-bold mb-4">من نحن</h1>
           <p className="text-blue-200 text-lg leading-relaxed max-w-xl mx-auto">
             CheckMyDevice هي منصة عربية رائدة لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء،
