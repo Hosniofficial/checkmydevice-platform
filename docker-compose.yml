@@ -44,7 +44,7 @@ services:
       SMTP_PORT: 587
       SMTP_USER: ""
       SMTP_PASS: ""
-      ADMIN_EMAIL: admin@checkmydevice.com
+      ADMIN_EMAIL: admin@checkmydevice.online
       ADMIN_PASSWORD: Admin@123456
     ports:
       - "5000:5000"

@@ -25,7 +25,7 @@ async function seed() {
     `);
 
     // ── Super Admin ────────────────────────────────────────────
-    const email = process.env.ADMIN_EMAIL || 'admin@checkmydevice.com';
+    const email = process.env.ADMIN_EMAIL || 'admin@checkmydevice.online';
     const password = process.env.ADMIN_PASSWORD || 'Admin@123456';
     const hash = await bcrypt.hash(password, 12);
 

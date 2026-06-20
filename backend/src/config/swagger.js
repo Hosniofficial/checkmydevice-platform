@@ -17,12 +17,12 @@ const options = {
       description: 'منصة فحص الأجهزة المحمولة في الوطن العربي — توثيق API كامل',
       contact: {
         name:  'CheckMyDevice Support',
-        email: 'support@checkmydevice.com',
+        email: 'support@checkmydevice.online',
       },
     },
     servers: [
       { url: 'http://localhost:5000',          description: 'Development' },
-      { url: 'https://api.checkmydevice.com',  description: 'Production' },
+      { url: 'https://api.checkmydevice.online',  description: 'Production' },
     ],
     components: {
       securitySchemes: {
@@ -88,7 +88,7 @@ const options = {
           type: 'object',
           required: ['email', 'password'],
           properties: {
-            email:    { type: 'string', format: 'email', example: 'admin@checkmydevice.com' },
+            email:    { type: 'string', format: 'email', example: 'admin@checkmydevice.online' },
             password: { type: 'string', example: 'Admin@123456' },
           },
         },
