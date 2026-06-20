@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Shield, Search, Bell, User, LogOut,
-  Menu, X, ChevronDown, Settings,
+  Menu, X, ChevronDown, Settings, FileText,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store.js';
 
@@ -111,7 +111,7 @@ export default function Layout() {
                           </div>
                           {[
                             { to: '/dashboard',  label: 'لوحة التحكم',   icon: User },
-                            { to: '/reports',    label: 'بلاغاتي',        icon: Shield },
+                            { to: '/reports',    label: 'بلاغاتي',        icon: FileText },
                             { to: '/profile',    label: 'الإعدادات',      icon: Settings },
                           ].map(({ to, label, icon: Icon }) => (
                             <Link key={to} to={to}
@@ -200,9 +200,9 @@ export default function Layout() {
               <p className="text-blue-200 text-sm leading-relaxed mb-4">
                 أول منصة عربية لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء.
               </p>
-              <a href="mailto:support@checkmydevice.com"
+              <a href="mailto:support@checkmydevice.online"
                 className="text-blue-300 text-xs hover:text-white transition-colors" dir="ltr">
-                support@checkmydevice.com
+                support@checkmydevice.online
               </a>
             </div>
 
