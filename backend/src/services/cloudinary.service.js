@@ -14,6 +14,10 @@ cloudinary.config({
   secure:     true,
 });
 
+// Log config status on startup
+const cfgOk = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET;
+console.log(cfgOk ? '✅ Cloudinary configured' : '⚠️ Cloudinary NOT configured — check env vars');
+
 // ─── Multer storage using Cloudinary ─────────────────────────────
 const storage = new CloudinaryStorage({
   cloudinary,

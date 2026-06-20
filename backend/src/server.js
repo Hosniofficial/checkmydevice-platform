@@ -83,6 +83,15 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 setupSwagger(app);
 
 // ── 8. Routes ─────────────────────────────────────────────────────
+// Increase timeout for file upload routes (Cloudinary can take time)
+app.use('/api/reports', (req, res, next) => {
+  if (req.method === 'POST') {
+    req.setTimeout(120000); // 2 minutes for uploads
+    res.setTimeout(120000);
+  }
+  next();
+});
+
 app.use('/api/auth',          authRoutes);
 app.use('/api/search',        searchRoutes);
 app.use('/api/reports',       reportsRoutes);
