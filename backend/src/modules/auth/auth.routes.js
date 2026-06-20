@@ -37,7 +37,8 @@ router.post('/register', async (req, res) => {
   const parsed = RegisterSchema.safeParse(req.body);
   if (!parsed.success) return err(res, 'VALIDATION_ERROR', 'بيانات غير صحيحة', parsed.error.message);
 
-  const { email, password, full_name, phone, country_code } = parsed.data;
+  const { email: rawEmail, password, full_name, phone, country_code } = parsed.data;
+  const email = rawEmail.trim().toLowerCase(); // ← normalize
 
   const exists = await query('SELECT id FROM users WHERE email=$1', [email]);
   if (exists.rows.length) return err(res, 'EMAIL_EXISTS', 'البريد الإلكتروني مسجل بالفعل');
@@ -69,7 +70,8 @@ router.post('/login', async (req, res) => {
   const parsed = LoginSchema.safeParse(req.body);
   if (!parsed.success) return err(res, 'VALIDATION_ERROR', 'بيانات غير صحيحة');
 
-  const { email, password } = parsed.data;
+  const { email: rawEmail, password } = parsed.data;
+  const email = rawEmail.trim().toLowerCase(); // ← normalize
   const result = await query('SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL', [email]);
   if (!result.rows.length) return err(res, 'INVALID_CREDENTIALS', 'البريد الإلكتروني أو كلمة المرور غير صحيحة', '', 401);
 
@@ -124,7 +126,7 @@ router.get('/verify-email/:token', async (req, res) => {
 
 // POST /auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
+  const email = (req.body.email || '').trim().toLowerCase(); // ← normalize
   const result = await query('SELECT id,full_name FROM users WHERE email=$1', [email]);
   // Always return success to prevent email enumeration
   if (!result.rows.length) return ok(res, { message_ar: 'إذا كان البريد الإلكتروني مسجلاً سيصلك رابط إعادة التعيين.' });
