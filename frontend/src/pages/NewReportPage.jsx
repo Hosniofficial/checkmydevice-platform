@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Smartphone, Laptop, Tablet, Upload, Phone, ChevronLeft, ChevronRight,
          CheckCircle, X, Loader, Sparkles, AlertCircle, Info,
-         ShieldAlert, HelpCircle } from 'lucide-react';
+         ShieldAlert, HelpCircle, FileText, Send } from 'lucide-react';
 import { Field, Spinner } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
@@ -165,14 +165,20 @@ export default function NewReportPage() {
   // ── Done screen ────────────────────────────────────────────────
   if (done) return (
     <div className="max-w-md mx-auto px-4 py-16 text-center">
-      <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6"/>
-      <h2 className="text-2xl font-bold mb-2">تم استلام بلاغك!</h2>
-      <p className="text-gray-500 mb-2">{done.message_ar}</p>
-      <div className="bg-gray-100 rounded-xl px-4 py-3 text-lg font-mono my-6 text-primary-700">
-        {done.reference}
+      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <CheckCircle className="w-12 h-12 text-green-600" />
       </div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">تم استلام بلاغك!</h2>
+      <p className="text-gray-500 text-sm mb-6 leading-relaxed">{done.message_ar}</p>
+      <div className="bg-primary-50 border border-primary-200 rounded-2xl px-6 py-4 my-6 inline-block">
+        <p className="text-xs text-primary-500 mb-1">رقم البلاغ</p>
+        <p className="text-xl font-bold font-mono text-primary-700 tracking-widest">{done.reference}</p>
+      </div>
+      <p className="text-xs text-gray-400 mb-6">احتفظ بهذا الرقم للمتابعة — سيتم مراجعة بلاغك خلال 24-48 ساعة</p>
       <div className="flex gap-3 justify-center">
-        <button onClick={() => navigate('/reports')} className="btn-primary">بلاغاتي</button>
+        <button onClick={() => navigate('/reports')} className="btn-primary flex items-center gap-2">
+          <FileText className="w-4 h-4" /> بلاغاتي
+        </button>
         <button onClick={() => navigate('/dashboard')} className="btn-outline">الرئيسية</button>
       </div>
     </div>
@@ -186,15 +192,21 @@ export default function NewReportPage() {
       <div className="flex items-center mb-8">
         {STEPS.map((label, i) => (
           <React.Fragment key={i}>
-            <div className="flex flex-col items-center">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors
-                ${i < step ? 'bg-green-500 text-white' : i === step ? 'bg-primary-700 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                {i < step ? '✓' : i + 1}
+            <div className="flex flex-col items-center min-w-0">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all
+                ${i < step  ? 'bg-green-500 text-white shadow-sm shadow-green-200'
+                : i === step ? 'bg-primary-700 text-white shadow-sm shadow-primary-200 ring-4 ring-primary-100'
+                :              'bg-gray-100 text-gray-400'}`}>
+                {i < step ? <CheckCircle className="w-5 h-5" /> : i + 1}
               </div>
-              <span className={`text-xs mt-1 hidden sm:block ${i === step ? 'text-primary-700 font-medium' : 'text-gray-400'}`}>{label}</span>
+              <span className={`text-xs mt-1.5 hidden sm:block font-medium transition-colors
+                ${i === step ? 'text-primary-700' : i < step ? 'text-green-600' : 'text-gray-400'}`}>
+                {label}
+              </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`flex-1 h-1 mx-2 rounded-full transition-colors ${i < step ? 'bg-green-400' : 'bg-gray-200'}`}/>
+              <div className={`flex-1 h-1 mx-2 rounded-full transition-all duration-500
+                ${i < step ? 'bg-green-400' : 'bg-gray-200'}`}/>
             )}
           </React.Fragment>
         ))}
@@ -433,9 +445,11 @@ export default function NewReportPage() {
             </div>
 
             <div onClick={() => fileRef.current.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-colors">
-              <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3"/>
-              <p className="text-sm text-gray-600 font-medium">اضغط لاختيار الصور</p>
+              className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-all group">
+              <div className="w-14 h-14 bg-gray-100 group-hover:bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
+                <Upload className="w-7 h-7 text-gray-400 group-hover:text-primary-600 transition-colors"/>
+              </div>
+              <p className="text-sm text-gray-600 font-semibold group-hover:text-primary-700 transition-colors">اضغط لاختيار الصور</p>
               <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — حتى 5MB لكل صورة — حتى 5 صور</p>
             </div>
             <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles}/>
@@ -536,8 +550,8 @@ export default function NewReportPage() {
             </button>
           ) : (
             <button onClick={submit} disabled={loading} className="btn-primary flex items-center gap-2 min-w-[140px] justify-center">
-              {loading ? <Spinner size={20}/> : null}
-              {loading ? 'جاري الإرسال...' : '📤 إرسال البلاغ'}
+              {loading ? <Spinner size={20}/> : <Send className="w-4 h-4" />}
+              {loading ? 'جاري الإرسال...' : 'إرسال البلاغ'}
             </button>
           )}
         </div>
