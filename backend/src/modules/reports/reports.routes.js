@@ -1,35 +1,15 @@
 import { Router }   from 'express';
-import multer        from 'multer';
-import path          from 'path';
-import fs            from 'fs';
 import { query }     from '../../db/pool.js';
 import { ok, err, created, getPagination, paginate } from '../../utils/response.js';
 import { authenticate }   from '../../middleware/auth.middleware.js';
 import { auditLog }       from '../../utils/audit.js';
 import { getDeviceFromCache } from '../../services/deviceLookup.service.js';
+import { uploadMiddleware } from '../../services/cloudinary.service.js';
 
 const router = Router();
 
-// ── File upload config ────────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = 'uploads/reports';
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  },
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    cb(null, allowed.includes(file.mimetype));
-  },
-});
+// ── File upload via Cloudinary ────────────────────────────────────
+const upload = uploadMiddleware;
 
 // ── GET /reports/device-info/:imei — IMEI auto-fill (no quota consumed) ──
 router.get('/device-info/:imei', authenticate, async (req, res) => {
@@ -139,12 +119,12 @@ router.post('/', authenticate, upload.array('documents', 5), async (req, res) =>
   );
   const report = result.rows[0];
 
-  // Save uploaded documents
+  // Save uploaded documents — Cloudinary returns file.path as the secure URL
   if (req.files?.length) {
     for (const file of req.files) {
       await query(
         'INSERT INTO report_documents (report_id,doc_type,file_url,file_size,mime_type) VALUES ($1,$2,$3,$4,$5)',
-        [report.id, 'box_image', `/uploads/reports/${file.filename}`, file.size, file.mimetype]
+        [report.id, 'box_image', file.path, file.size, file.mimetype]
       );
     }
   }
@@ -189,7 +169,7 @@ router.post('/:id/documents', authenticate, upload.array('documents', 5), async 
   for (const file of (req.files || [])) {
     const r = await query(
       'INSERT INTO report_documents (report_id,doc_type,file_url,file_size,mime_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-      [req.params.id, req.body.doc_type||'other', `/uploads/reports/${file.filename}`, file.size, file.mimetype]
+      [req.params.id, req.body.doc_type||'other', file.path, file.size, file.mimetype]
     );
     docs.push(r.rows[0]);
   }
