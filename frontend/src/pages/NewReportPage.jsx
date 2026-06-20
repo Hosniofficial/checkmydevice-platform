@@ -95,10 +95,38 @@ export default function NewReportPage() {
       });
   }, [debouncedImei]);
 
-  // ── Files ──────────────────────────────────────────────────────
-  const handleFiles = (e) => {
+  // ── Files — with client-side compression ─────────────────────
+  const compressImage = (file) => new Promise((resolve) => {
+    // Skip if already small (< 800KB)
+    if (file.size < 800 * 1024) { resolve(file); return; }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      // Max dimension 1200px
+      const MAX = 1200;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+        else                { width  = Math.round(width  * MAX / height); height = MAX; }
+      }
+      canvas.width  = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => resolve(new File([blob], file.name, { type: 'image/jpeg' })),
+        'image/jpeg', 0.82  // 82% quality — good balance
+      );
+    };
+    img.src = url;
+  });
+
+  const handleFiles = async (e) => {
     const selected = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selected].slice(0, 5));
+    const compressed = await Promise.all(selected.map(compressImage));
+    setFiles(prev => [...prev, ...compressed].slice(0, 5));
   };
   const removeFile = (i) => setFiles(prev => prev.filter((_, idx) => idx !== i));
 

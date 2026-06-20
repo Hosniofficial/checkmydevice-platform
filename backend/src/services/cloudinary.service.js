@@ -22,9 +22,12 @@ console.log(cfgOk ? '✅ Cloudinary configured' : '⚠️ Cloudinary NOT configu
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
-    folder:         'checkmydevice/reports',
+    folder:          'checkmydevice/reports',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+    transformation: [
+      { width: 1200, height: 1200, crop: 'limit' }, // max 1200x1200
+      { quality: 'auto:good', fetch_format: 'auto' },
+    ],
     public_id: `report_${Date.now()}_${Math.random().toString(36).slice(2)}`,
   }),
 });
