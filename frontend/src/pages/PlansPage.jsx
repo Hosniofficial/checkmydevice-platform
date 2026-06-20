@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Zap } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 import { Spinner } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
 
@@ -48,6 +49,7 @@ export default function PlansPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
+      <SEOHead page="plans" />
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-3">الخطط والأسعار</h1>
         <p className="text-gray-500 mb-6">ابدأ مجاناً — الأسعار بالجنيه المصري (EGP)</p>

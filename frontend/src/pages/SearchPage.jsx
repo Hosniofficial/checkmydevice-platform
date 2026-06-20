@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import SEOHead from '../components/SEOHead.jsx';
 import {
-  Search, AlertTriangle, CheckCircle, Info, Phone, Mail,
+  Search, Info, Phone, Mail,
   Smartphone, Laptop, Tablet, Gift, ShieldCheck, ShieldAlert,
   HelpCircle, Clock,
 } from 'lucide-react';
@@ -111,6 +112,7 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
+      <SEOHead page="search" />
 
       {/* Header */}
       <div className="mb-8">
@@ -226,7 +228,6 @@ export default function SearchPage() {
               {/* Reports */}
               {result.reports?.map((r, i) => (
                 <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  {/* Report header */}
                   <div className="flex items-center justify-between mb-3">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full
                       ${r.report_type === 'stolen' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Calendar } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 
 const LAST_UPDATED = '15 يونيو 2026';
 
@@ -21,6 +22,7 @@ const Section = ({ num, title, children }) => (
 export default function TermsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <SEOHead page="terms" />
       {/* Header */}
       <div className="text-center mb-10">
         <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -138,10 +140,7 @@ export default function TermsPage() {
 
         <Section num="١٠" title="التواصل والشكاوى">
           <p>
-            للتواصل أو تقديم شكوى:{' '}
-            <a href="mailto:support@checkmydevice.com" className="text-primary-700 hover:underline" dir="ltr">
-              support@checkmydevice.com
-            </a>
+            للتواصل معنا بشأن التسجيل: <a href="mailto:support@checkmydevice.online" className="text-primary-700 hover:underline" dir="ltr">support@checkmydevice.online</a>
           </p>
           <p>نلتزم بالرد خلال 5 أيام عمل.</p>
         </Section>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Calendar } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 
 const LAST_UPDATED = '15 يونيو 2026';
 
@@ -19,6 +20,7 @@ const Section = ({ title, children }) => (
 export default function PrivacyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <SEOHead page="privacy" />
       {/* Header */}
       <div className="text-center mb-10">
         <img src="/Logo.png" alt="CheckMyDevice" className="w-14 h-14 object-contain rounded-2xl mx-auto mb-4" />
@@ -41,7 +43,7 @@ export default function PrivacyPage() {
             نعمل كوسيط بين أصحاب الأجهزة المسروقة والمشترين المحتملين لمنع تداول الأجهزة المسروقة.
           </p>
           <p>
-            للتواصل معنا بشأن الخصوصية: <a href="mailto:privacy@checkmydevice.com" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.com</a>
+            للتواصل معنا بشأن الخصوصية: <a href="mailto:privacy@checkmydevice.online" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.online</a>
           </p>
         </Section>
 
@@ -88,7 +90,7 @@ export default function PrivacyPage() {
           <p>• <strong>الحذف:</strong> حذف حسابك من صفحة الملف الشخصي (نحتفظ بالبلاغات لأغراض قانونية وأمنية).</p>
           <p>• <strong>الاعتراض:</strong> الاعتراض على أي معالجة لبياناتك.</p>
           <p>• <strong>النقل:</strong> طلب نسخة من بياناتك بصيغة قابلة للقراءة.</p>
-          <p>لممارسة أي من هذه الحقوق: <a href="mailto:privacy@checkmydevice.com" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.com</a></p>
+          <p>لممارسة أي من هذه الحقوق: <a href="mailto:privacy@checkmydevice.online" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.online</a></p>
         </Section>
 
         <Section title="٨. الاحتفاظ بالبيانات">
@@ -102,7 +104,7 @@ export default function PrivacyPage() {
           <p>
             خدمتنا غير موجهة لمن هم دون 18 سنة. إذا اكتشفنا أن طفلاً قاصراً
             قدّم بياناته، سنحذف الحساب فوراً. للإبلاغ:{' '}
-            <a href="mailto:privacy@checkmydevice.com" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.com</a>
+            <a href="mailto:privacy@checkmydevice.online" className="text-primary-700 hover:underline" dir="ltr">privacy@checkmydevice.online</a>
           </p>
         </Section>
 
@@ -119,9 +121,9 @@ export default function PrivacyPage() {
         <Mail className="w-8 h-8 text-primary-700 mx-auto mb-3" />
         <h3 className="font-bold text-gray-900 mb-2">هل لديك سؤال حول خصوصيتك؟</h3>
         <p className="text-gray-500 text-sm mb-4">فريق الخصوصية لدينا يرد خلال 48 ساعة</p>
-        <a href="mailto:privacy@checkmydevice.com"
+        <a href="mailto:privacy@checkmydevice.online"
           className="btn-primary inline-block text-sm py-2 px-6" dir="ltr">
-          privacy@checkmydevice.com
+          privacy@checkmydevice.online
         </a>
       </div>
 

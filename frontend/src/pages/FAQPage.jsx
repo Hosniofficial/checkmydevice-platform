@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Search, HelpCircle } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 
 const FAQS = [
   {
@@ -102,7 +103,7 @@ export default function FAQPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      {/* Header */}
+      <SEOHead page="faq" />
       <div className="text-center mb-10">
         <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <HelpCircle className="w-7 h-7 text-white" />

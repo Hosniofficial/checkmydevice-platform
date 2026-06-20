@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import SEOHead from '../components/SEOHead.jsx';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, Phone, MessageCircle, Clock, CheckCircle, Send } from 'lucide-react';
 import { contactSchema } from '../lib/validation.js';
@@ -8,7 +9,7 @@ import api from '../lib/api.js';
 import toast from 'react-hot-toast';
 
 const CONTACT_ITEMS = [
-  { icon: Mail,          label: 'البريد الإلكتروني',  value: 'support@checkmydevice.com',   href: 'mailto:support@checkmydevice.com', dir: 'ltr' },
+  { icon: Mail, label: 'البريد الإلكتروني', value: 'support@checkmydevice.online', href: 'mailto:support@checkmydevice.online', dir: 'ltr' },
   { icon: MessageCircle, label: 'واتساب',              value: '+20 106 202 4249',             href: 'https://wa.me/201062024249',      dir: 'ltr' },
   { icon: Clock,         label: 'ساعات العمل',         value: 'يومياً ٩ص - ١١م (بتوقيت القاهرة)', href: null,                         dir: 'rtl' },
 ];
@@ -35,8 +36,6 @@ export default function ContactPage() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      // In production: POST /api/contact
-      // For now: simulate API call
       await new Promise(r => setTimeout(r, 1000));
       setSent(true);
       reset();
@@ -49,7 +48,7 @@ export default function ContactPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* Header */}
+      <SEOHead page="contact" />
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">تواصل معنا</h1>
         <p className="text-gray-500">فريقنا جاهز للمساعدة — نرد خلال 24-48 ساعة</p>

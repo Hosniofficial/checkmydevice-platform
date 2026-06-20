@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Target, Users, Globe, CheckCircle, Heart, Zap, Lock, Shield } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 
 const STATS = [
   { value: '50,000+', label: 'جهاز مسجل' },
@@ -26,6 +27,7 @@ const TEAM = [
 export default function AboutPage() {
   return (
     <div className="bg-white">
+      <SEOHead page="about" />
 
       {/* Hero */}
       <section className="bg-gradient-to-bl from-primary-700 to-blue-900 text-white py-20 px-4">

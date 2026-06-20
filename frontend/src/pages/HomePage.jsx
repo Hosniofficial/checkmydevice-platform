@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Search, AlertTriangle, CheckCircle, FileText, Zap, Users, Database } from 'lucide-react';
+import SEOHead from '../components/SEOHead.jsx';
 
 export default function HomePage() {
   const [imei, setImei] = useState('');
@@ -13,6 +14,7 @@ export default function HomePage() {
 
   return (
     <div>
+      <SEOHead page="home" />
       {/* Hero */}
       <section className="bg-gradient-to-bl from-primary-700 via-primary-700 to-blue-900 text-white py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
