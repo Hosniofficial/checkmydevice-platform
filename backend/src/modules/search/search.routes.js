@@ -83,7 +83,9 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
   );
 
   // ── 6. Notify owner if device was searched ────────────────────
-  if (isReported && !cacheHit) {
+  // Send regardless of cache hit — the email service has its own 24h rate limit.
+  // This ensures the owner is always notified even if the DB result was cached.
+  if (isReported) {
     const ownerResult = await query(
       `SELECT u.email, u.full_name, dr.contact_email
        FROM devices_reports dr JOIN users u ON dr.user_id=u.id
@@ -97,7 +99,10 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
         brand: activeReports[0].brand,
         model: activeReports[0].model,
         imei:  trimmed,
-      }, { country: req.headers['cf-ipcountry'] || null }).catch(console.error);
+      }, {
+        country:    req.headers['cf-ipcountry'] || null,
+        searchedAt: new Date().toISOString(),   // actual search time
+      }).catch(console.error);
     }
   }
 
