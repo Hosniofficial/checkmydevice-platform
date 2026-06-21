@@ -7,6 +7,7 @@ import {
 import { Spinner, Pagination } from '../../components/ui/index.jsx';
 import api from '../../lib/api.js';
 import { formatDateTime } from '../../lib/format.js';
+import SEOHead from '../../components/SEOHead.jsx';
 
 // ── Action config — icon + label + color ──────────────────────────
 const ACTION_CONFIG = {
@@ -117,6 +118,7 @@ export default function AdminAuditLogs() {
 
   return (
     <div className="space-y-5">
+      <SEOHead page="admin/audit-logs" />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">سجل الأحداث</h1>

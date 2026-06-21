@@ -64,21 +64,56 @@ export const SEO_PAGES = {
     canonical: `${BASE_URL}/terms`,
     keywords: 'شروط الاستخدام CheckMyDevice, أحكام المنصة',
   },
+
+  // ── Admin pages (title only — no public indexing) ──────────────
+  'admin/dashboard': {
+    title: 'لوحة التحكم | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
+  'admin/reports': {
+    title: 'البلاغات | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
+  'admin/report-detail': {
+    title: 'تفاصيل البلاغ | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
+  'admin/users': {
+    title: 'المستخدمون | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
+  'admin/search': {
+    title: 'بحث IMEI | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
+  'admin/audit-logs': {
+    title: 'سجل الأحداث | Admin — CheckMyDevice',
+    description: '',
+    canonical: '',
+  },
 };
 
 /**
  * Builds a full <head> meta object for a given page key.
  * @param {keyof SEO_PAGES} pageKey
- * @returns {{ title, description, canonical, ogTags, twitterTags }}
+ * @returns {{ title, description, canonical, keywords, isAdmin, ogTags, twitterTags }}
  */
 export function buildSEO(pageKey) {
-  const page = SEO_PAGES[pageKey] || SEO_PAGES.home;
+  const page    = SEO_PAGES[pageKey] || SEO_PAGES.home;
+  const isAdmin = pageKey?.startsWith('admin/');
+
   return {
     title:       page.title,
-    description: page.description,
-    canonical:   page.canonical,
-    keywords:    page.keywords || '',
-    ogTags: {
+    description: page.description || '',
+    canonical:   page.canonical   || '',
+    keywords:    page.keywords    || '',
+    isAdmin,
+    ogTags: isAdmin ? {} : {
       'og:type':        'website',
       'og:site_name':   SITE_NAME,
       'og:title':       page.title,
@@ -87,7 +122,7 @@ export function buildSEO(pageKey) {
       'og:image':       OG_IMAGE,
       'og:locale':      'ar_EG',
     },
-    twitterTags: {
+    twitterTags: isAdmin ? {} : {
       'twitter:card':        'summary',
       'twitter:title':       page.title,
       'twitter:description': page.description,

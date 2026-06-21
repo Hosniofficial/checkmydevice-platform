@@ -8,6 +8,7 @@ import { Spinner, Pagination, ConfirmDialog } from '../../components/ui/index.js
 import { useAuthStore } from '../../store/auth.store.js';
 import api from '../../lib/api.js';
 import toast from 'react-hot-toast';
+import SEOHead from '../../components/SEOHead.jsx';
 import { getCountryName } from '../../lib/countries.js';
 import { formatDate } from '../../lib/format.js';
 
@@ -153,6 +154,7 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-5">
+      <SEOHead page="admin/users" />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h1>

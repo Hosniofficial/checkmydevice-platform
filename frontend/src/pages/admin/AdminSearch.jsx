@@ -7,6 +7,7 @@ import { Spinner, StatusBadge } from '../../components/ui/index.jsx';
 import api from '../../lib/api.js';
 import { getCountryName } from '../../lib/countries.js';
 import { formatDate, formatDateTime } from '../../lib/format.js';
+import SEOHead from '../../components/SEOHead.jsx';
 
 // ── helpers ───────────────────────────────────────────────────────
 function overallStatus(reports = []) {
@@ -185,6 +186,7 @@ export default function AdminSearch() {
 
   return (
     <div className="space-y-6">
+      <SEOHead page="admin/search" />
       <div>
         <h1 className="text-2xl font-bold text-gray-900">بحث IMEI</h1>
         <p className="text-sm text-gray-500 mt-1">

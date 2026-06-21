@@ -8,6 +8,7 @@ import {
 import { Spinner, StatusBadge } from '../../components/ui/index.jsx';
 import api from '../../lib/api.js';
 import { getCountryName } from '../../lib/countries.js';
+import SEOHead from '../../components/SEOHead.jsx';
 import { formatDate, formatDateLong } from '../../lib/format.js';
 
 // ── StatCard component ────────────────────────────────────────────
@@ -84,8 +85,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-
-      {/* Page header */}
+      <SEOHead page="admin/dashboard" />
       <div>
         <h1 className="text-2xl font-bold text-gray-900">لوحة التحكم</h1>
         <p className="text-sm text-gray-400 mt-1">{formatDateLong(new Date())}</p>

@@ -5,6 +5,7 @@ import { StatusBadge, Spinner, Pagination } from '../../components/ui/index.jsx'
 import api from '../../lib/api.js';
 import { getCountryName } from '../../lib/countries.js';
 import { formatDate } from '../../lib/format.js';
+import SEOHead from '../../components/SEOHead.jsx';
 
 const STATUS_OPTS = ['', 'pending', 'under_review', 'approved', 'rejected', 'cancelled'];
 const STATUS_AR   = { '':'الكل', pending:'معلق', under_review:'قيد المراجعة', approved:'مقبول', rejected:'مرفوض', cancelled:'ملغي' };
@@ -55,6 +56,7 @@ export default function AdminReports() {
 
   return (
     <div className="space-y-5">
+      <SEOHead page="admin/reports" />
       <div>
         <h1 className="text-2xl font-bold text-gray-900">إدارة البلاغات</h1>
         <p className="text-sm text-gray-500 mt-1">{data?.meta?.total ?? '—'} بلاغ إجمالي</p>

@@ -8,6 +8,7 @@ import {
 import { StatusBadge, Spinner } from '../../components/ui/index.jsx';
 import { useAuthStore } from '../../store/auth.store.js';
 import api from '../../lib/api.js';
+import SEOHead from '../../components/SEOHead.jsx';
 import { resolveAssetUrl } from '../../lib/config.js';
 import toast from 'react-hot-toast';
 import { getCountryName } from '../../lib/countries.js';
@@ -94,6 +95,7 @@ export default function AdminReportDetail() {
 
   return (
     <div className="max-w-3xl space-y-5">
+      <SEOHead page="admin/report-detail" />
 
       {/* Back + header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
