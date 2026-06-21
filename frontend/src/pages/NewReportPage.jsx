@@ -10,7 +10,7 @@ import { COUNTRIES, getCountryName } from '../lib/countries.js';
 
 const STEPS = ['بيانات الجهاز', 'إثبات الملكية', 'بيانات التواصل'];
 
-const BRANDS = ['Apple','Samsung','Huawei','Xiaomi','Oppo','Vivo','OnePlus',
+const BRANDS = ['Apple','Samsung','Huawei','Honor','Xiaomi','Oppo','Vivo','OnePlus',
                 'Motorola','Nokia','LG','Sony','Realme','Tecno','Infinix','أخرى'];
 
 // ── Debounce hook ────────────────────────────────────────────────
