@@ -82,8 +82,10 @@ api.interceptors.request.use(async (config) => {
   if (isTokenExpiredOrExpiringSoon(token)) {
     try {
       token = await doRefresh();
-    } catch {
-      // doRefresh already handled redirect — just continue with old token
+    } catch (err) {
+      // doRefresh already cleared session and redirected if needed.
+      // Reject here to stop the request — no point sending an expired token.
+      return Promise.reject(err);
     }
   }
 
