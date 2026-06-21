@@ -24,7 +24,10 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Auto refresh on 401 (skip auth endpoints — e.g. failed login must not reload the page)
+// Track if a refresh is already in-progress to avoid parallel refresh calls
+let refreshPromise = null;
+
+// Auto refresh on 401
 api.interceptors.response.use(
   r => r,
   async (error) => {
@@ -40,22 +43,34 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem('refresh_token');
         if (!refresh) throw new Error('no refresh token');
 
-        const { data } = await axios.post(`${BASE}/auth/refresh`, { refresh_token: refresh });
-        const newToken = data.data.access_token;
+        // Deduplicate: if refresh is already in flight, wait for it
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${BASE}/auth/refresh`, { refresh_token: refresh })
+            .finally(() => { refreshPromise = null; });
+        }
 
-        localStorage.setItem('access_token',  newToken);
-        localStorage.setItem('refresh_token', data.data.refresh_token);
+        const { data } = await refreshPromise;
+        const newAccess  = data.data.access_token;
+        const newRefresh = data.data.refresh_token;
 
-        // Update the failed request's auth header and retry
+        localStorage.setItem('access_token',  newAccess);
+        localStorage.setItem('refresh_token', newRefresh);
+
+        api.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
         original.headers = original.headers || {};
-        original.headers.Authorization = `Bearer ${newToken}`;
-        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        original.headers.Authorization = `Bearer ${newAccess}`;
 
         return api(original);
       } catch {
+        // Refresh failed — clear session silently
         localStorage.clear();
         delete api.defaults.headers.common.Authorization;
-        if (!window.location.pathname.startsWith('/login')) {
+
+        // Only redirect to login if on a protected route
+        const protectedPaths = ['/dashboard', '/reports', '/notifications', '/profile', '/admin'];
+        const isProtected = protectedPaths.some(p => window.location.pathname.startsWith(p));
+        if (isProtected) {
           window.location.href = '/login';
         }
       }
