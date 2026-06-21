@@ -47,27 +47,28 @@ function ShareCard({ report }) {
   // Last 4 digits of IMEI only — safe to share
   const imeiSuffix = report.imei ? report.imei.slice(-4) : null;
 
-  // Build device description
-  const parts = [report.brand, report.model];
+  // Build device description — strip technical model code in parentheses e.g. "(A3257)"
+  const cleanModel = (report.model || '').replace(/\s*\([^)]*\)\s*/g, '').trim();
+  const parts = [report.brand, cleanModel];
   if (report.color)   parts.push(report.color);
   if (report.storage) parts.push(report.storage);
-  const deviceDesc = parts.join(' ');
+  const deviceDesc = parts.filter(Boolean).join(' ');
 
   const reportTypeAr = report.report_type === 'stolen' ? 'مسروق' : 'مفقود';
   const searchUrl    = `https://checkmydevice.online/search?q=${report.imei}`;
 
   const whatsappText = [
-    `🚨 ${reportTypeAr}: ${deviceDesc}`,
-    imeiSuffix ? `📱 رقم IMEI ينتهي بـ: ${imeiSuffix}` : '',
+    `${reportTypeAr}: ${deviceDesc}`,
+    imeiSuffix ? `رقم IMEI ينتهي بـ: ${imeiSuffix}` : '',
     ``,
-    `لو اشتريته أو وجدته، تحقق منه:`,
-    `🔍 اتصل بـ ‎*#06#‎ وشوف لو آخر 4 أرقام هي ${imeiSuffix || '—'}`,
+    `لو اشتريته او وجدته، تحقق منه:`,
+    `اتصل بـ *#06# وشوف لو اخر 4 ارقام هي ${imeiSuffix || '—'}`,
     ``,
-    `✅ تحقق مجاناً: ${searchUrl}`,
+    `تحقق مجانا: ${searchUrl}`,
   ].filter(Boolean).join('\n');
 
   const facebookText = encodeURIComponent(
-    `${reportTypeAr}: ${deviceDesc}${imeiSuffix ? ` — IMEI ينتهي بـ ${imeiSuffix}` : ''}. تحقق منه مجاناً: ${searchUrl}`
+    `${reportTypeAr}: ${deviceDesc}${imeiSuffix ? ` — IMEI ينتهي بـ ${imeiSuffix}` : ''}. تحقق منه مجانا: ${searchUrl}`
   );
 
   const handleCopy = () => {
