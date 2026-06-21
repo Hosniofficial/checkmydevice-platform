@@ -160,8 +160,22 @@ router.get('/history', authenticate, async (req, res) => {
 // ─── GET /search/quota ────────────────────────────────────────────
 router.get('/quota', optionalAuth, async (req, res) => {
   const ip    = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
-  const today = new Date(); today.setHours(0, 0, 0, 0);
   const limit = await getUserSearchLimit(req.user);
+
+  // ── Try Redis first (same source as the rate limiter) ──────────
+  const { rateLimitGet, KEY: RKEY, isRedisConnected } = await import('../../services/redis.service.js');
+
+  if (isRedisConnected()) {
+    const cacheKey = req.user ? RKEY.rateUser(req.user.id) : RKEY.rateIp(ip);
+    const count    = await rateLimitGet(cacheKey);
+    if (count !== null) {
+      const used = count;
+      return ok(res, { limit, used, remaining: Math.max(0, limit - used) });
+    }
+  }
+
+  // ── Fallback: PostgreSQL ────────────────────────────────────────
+  const today = new Date(); today.setUTCHours(0, 0, 0, 0);
 
   if (req.user) {
     const { rows } = await query(
