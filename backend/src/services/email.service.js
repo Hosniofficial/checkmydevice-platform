@@ -159,8 +159,7 @@ export async function sendVerificationEmail(email, name, token) {
 
 // ─── Password Reset Email ─────────────────────────────────────────
 export async function sendPasswordResetEmail(email, name, token) {
-  const url         = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  const displayName = name || 'عزيزي المستخدم';
+  const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
   const content = `
     <p class="greeting">إعادة تعيين كلمة المرور</p>
