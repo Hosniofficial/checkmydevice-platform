@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowRight, XCircle, Image as ImageIcon,
   Smartphone, Laptop, Tablet, MapPin, Phone, Shield,
+  Share2, MessageCircle, Facebook, Link as LinkIcon, CheckCircle,
 } from 'lucide-react';
 import { StatusBadge, Spinner, ConfirmDialog } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
@@ -39,7 +40,105 @@ function SectionCard({ title, icon: Icon, iconColor = 'text-primary-600', childr
   );
 }
 
-// Backend serves uploads from root — use resolveAssetUrl for correct URL
+// ── Share card — shown only for approved reports ──────────────────
+function ShareCard({ report }) {
+  const [copied, setCopied] = useState(false);
+
+  // Last 4 digits of IMEI only — safe to share
+  const imeiSuffix = report.imei ? report.imei.slice(-4) : null;
+
+  // Build device description
+  const parts = [report.brand, report.model];
+  if (report.color)   parts.push(report.color);
+  if (report.storage) parts.push(report.storage);
+  const deviceDesc = parts.join(' ');
+
+  const reportTypeAr = report.report_type === 'stolen' ? 'مسروق' : 'مفقود';
+  const searchUrl    = `https://checkmydevice.online/search?q=${report.imei}`;
+
+  const whatsappText = [
+    `🚨 ${reportTypeAr}: ${deviceDesc}`,
+    imeiSuffix ? `📱 رقم IMEI ينتهي بـ: ${imeiSuffix}` : '',
+    ``,
+    `لو اشتريته أو وجدته، تحقق منه:`,
+    `🔍 اتصل بـ ‎*#06#‎ وشوف لو آخر 4 أرقام هي ${imeiSuffix || '—'}`,
+    ``,
+    `✅ تحقق مجاناً: ${searchUrl}`,
+  ].filter(Boolean).join('\n');
+
+  const facebookText = encodeURIComponent(
+    `${reportTypeAr}: ${deviceDesc}${imeiSuffix ? ` — IMEI ينتهي بـ ${imeiSuffix}` : ''}. تحقق منه مجاناً: ${searchUrl}`
+  );
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(searchUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="bg-gradient-to-l from-primary-700 to-primary-600 rounded-2xl p-5 text-white">
+      <div className="flex items-center gap-2 mb-1">
+        <Share2 className="w-5 h-5 text-blue-200" />
+        <h2 className="font-bold text-base">شارك بلاغك — ربما يساعد</h2>
+      </div>
+      <p className="text-blue-200 text-sm mb-4 leading-relaxed">
+        انشر رابط البحث عن جهازك. من وجده أو اشتراه يقدر يتحقق منه مجاناً.
+        <br />
+        <span className="text-white font-medium">الرابط لا يكشف بياناتك الشخصية.</span>
+      </p>
+
+      {/* Instruction hint */}
+      {imeiSuffix && (
+        <div className="bg-white/10 rounded-xl px-4 py-2.5 mb-4 text-sm">
+          <span className="text-blue-200">اطلب من من وجده:</span>
+          {' '}يتصل بـ{' '}
+          <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-white">*#06#</span>
+          {' '}ويشوف لو آخر 4 أرقام هي{' '}
+          <span className="font-mono font-bold text-yellow-300">{imeiSuffix}</span>
+        </div>
+      )}
+
+      {/* Share buttons */}
+      <div className="flex gap-2 flex-wrap">
+        {/* WhatsApp */}
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          واتساب
+        </a>
+
+        {/* Facebook */}
+        <a
+          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(searchUrl)}&quote=${facebookText}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        >
+          <Facebook className="w-4 h-4" />
+          فيسبوك
+        </a>
+
+        {/* Copy link */}
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        >
+          {copied
+            ? <><CheckCircle className="w-4 h-4 text-green-300" /> تم النسخ</>
+            : <><LinkIcon className="w-4 h-4" /> نسخ الرابط</>
+          }
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function resolveUrl(url) {
   return resolveAssetUrl(url);
 }
@@ -47,9 +146,9 @@ function resolveUrl(url) {
 export default function ReportDetailPage() {
   const { id }     = useParams();
   const navigate   = useNavigate();
-  const [report, setReport]       = useState(null);
-  const [loading, setLoading]     = useState(true);
-  const [confirm, setConfirm]     = useState(false);
+  const [report, setReport]         = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [confirm, setConfirm]       = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
@@ -76,8 +175,9 @@ export default function ReportDetailPage() {
   if (loading) return <div className="flex justify-center py-20"><Spinner size={40} /></div>;
   if (!report) return null;
 
-  const canCancel = !['cancelled', 'rejected'].includes(report.status);
-  const dt        = DEVICE_TYPE[report.device_type] || DEVICE_TYPE.phone;
+  const canCancel  = !['cancelled', 'rejected'].includes(report.status);
+  const isApproved = report.status === 'approved';
+  const dt         = DEVICE_TYPE[report.device_type] || DEVICE_TYPE.phone;
   const DeviceIcon = dt.icon;
 
   return (
@@ -110,6 +210,9 @@ export default function ReportDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Share card — approved reports only */}
+      {isApproved && <ShareCard report={report} />}
 
       {/* Admin note */}
       {report.admin_note && (
