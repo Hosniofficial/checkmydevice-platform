@@ -104,6 +104,9 @@ CREATE TABLE IF NOT EXISTS device_cache (
 ALTER TABLE IF EXISTS device_cache ADD COLUMN IF NOT EXISTS model_code VARCHAR(100);
 CREATE INDEX IF NOT EXISTS idx_device_cache_imei ON device_cache(imei);
 
+-- Ensure last_search_notified_at exists for email rate limiting
+ALTER TABLE IF EXISTS devices_reports ADD COLUMN IF NOT EXISTS last_search_notified_at TIMESTAMP;
+
 -- ─── SEARCH_LOGS ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS search_logs (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
