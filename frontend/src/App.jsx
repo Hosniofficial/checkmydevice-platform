@@ -22,6 +22,14 @@ import TermsPage           from './pages/TermsPage.jsx';
 import ContactPage         from './pages/ContactPage.jsx';
 import FAQPage             from './pages/FAQPage.jsx';
 
+// ── Blog / SEO pages ──────────────────────────────────────────────
+import BlogIndexPage             from './pages/blog/BlogIndexPage.jsx';
+import FreeImeiCheckPage         from './pages/blog/FreeImeiCheckPage.jsx';
+import HowToCheckStolenPhonePage from './pages/blog/HowToCheckStolenPhonePage.jsx';
+import WhatToDoIfPhoneStolenPage from './pages/blog/WhatToDoIfPhoneStolenPage.jsx';
+import WhatToDoIfPhoneLostPage   from './pages/blog/WhatToDoIfPhoneLostPage.jsx';
+import HowToReportStolenPhonePage from './pages/blog/HowToReportStolenPhonePage.jsx';
+
 // ── Protected user pages ──────────────────────────────────────────
 import DashboardPage       from './pages/DashboardPage.jsx';
 import MyReportsPage       from './pages/MyReportsPage.jsx';
@@ -72,6 +80,14 @@ function App() {
           <Route path="terms"              element={<TermsPage />} />
           <Route path="contact"            element={<ContactPage />} />
           <Route path="faq"               element={<FAQPage />} />
+
+          {/* Blog / SEO articles */}
+          <Route path="blog"                                     element={<BlogIndexPage />} />
+          <Route path="blog/free-imei-check"                     element={<FreeImeiCheckPage />} />
+          <Route path="blog/how-to-check-stolen-phone"           element={<HowToCheckStolenPhonePage />} />
+          <Route path="blog/what-to-do-if-phone-stolen"          element={<WhatToDoIfPhoneStolenPage />} />
+          <Route path="blog/what-to-do-if-phone-lost"            element={<WhatToDoIfPhoneLostPage />} />
+          <Route path="blog/how-to-report-stolen-phone"          element={<HowToReportStolenPhonePage />} />
 
           {/* Auth */}
           <Route path="login"              element={<LoginPage />} />

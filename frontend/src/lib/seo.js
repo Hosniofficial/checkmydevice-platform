@@ -65,6 +65,44 @@ export const SEO_PAGES = {
     keywords: 'شروط الاستخدام CheckMyDevice, أحكام المنصة',
   },
 
+  // ── Blog / SEO articles ───────────────────────────────────────
+  'blog': {
+    title: 'المدونة — أدلة وتحقق من الأجهزة | CheckMyDevice',
+    description: 'دليلك الكامل لحماية جهازك، التحقق قبل الشراء، والتصرف الصح عند السرقة أو الضياع.',
+    canonical: `${BASE_URL}/blog`,
+    keywords: 'مدونة CheckMyDevice, دليل فحص الهاتف, نصائح شراء هاتف مستعمل',
+  },
+  'blog/how-to-check-stolen-phone': {
+    title: 'كيف أعرف أن الهاتف مسروق؟ — دليل كامل 2026 | CheckMyDevice',
+    description: 'تعرف على 7 طرق للتحقق من أن الهاتف المستعمل مسروق قبل الشراء. فحص IMEI، علامات الجهاز المسروق، وكيف تحمي نفسك.',
+    canonical: `${BASE_URL}/blog/how-to-check-stolen-phone`,
+    keywords: 'كيف أعرف أن الهاتف مسروق, علامات الهاتف المسروق, فحص هاتف مستعمل, التحقق من هاتف قبل الشراء',
+  },
+  'blog/free-imei-check': {
+    title: 'فحص IMEI مجاني — تحقق من جهازك في ثوانٍ | CheckMyDevice',
+    description: 'فحص IMEI مجاني بالكامل. أدخل رقم IMEI واعرف فوراً إذا كان الجهاز مسروقاً أو مفقوداً. كيف تجد رقم IMEI وما أهميته.',
+    canonical: `${BASE_URL}/blog/free-imei-check`,
+    keywords: 'فحص IMEI مجاني, رقم IMEI ما هو, كيف أعرف رقم IMEI, التحقق من IMEI',
+  },
+  'blog/what-to-do-if-phone-stolen': {
+    title: 'ماذا أفعل إذا سُرق هاتفي؟ — 8 خطوات فورية | CheckMyDevice',
+    description: 'سُرق هاتفك؟ اتبع هذه الخطوات الـ 8 فوراً: قفل الجهاز عن بُعد، إبلاغ الشرطة، تسجيل IMEI في CheckMyDevice، وحماية بياناتك.',
+    canonical: `${BASE_URL}/blog/what-to-do-if-phone-stolen`,
+    keywords: 'سرق هاتفي ماذا أفعل, خطوات سرقة الهاتف, إيقاف هاتف مسروق, بلاغ سرقة هاتف',
+  },
+  'blog/what-to-do-if-phone-lost': {
+    title: 'ضاع هاتفي — كيف أجده أو أحمي بياناتي؟ | CheckMyDevice',
+    description: 'خطوات عملية إذا ضاع هاتفك: تتبع الجهاز، قفل البيانات، الإبلاغ عنه، وكيف تسترد هاتفك أو تحمي بياناتك من الاستخدام.',
+    canonical: `${BASE_URL}/blog/what-to-do-if-phone-lost`,
+    keywords: 'ضاع هاتفي ماذا أفعل, تتبع هاتف مفقود, هاتف مفقود خطوات, حماية بيانات هاتف مفقود',
+  },
+  'blog/how-to-report-stolen-phone': {
+    title: 'كيف أبلغ عن هاتف مسروق؟ — دليل الإبلاغ الكامل | CheckMyDevice',
+    description: 'تعلم كيف تسجل بلاغاً رسمياً عن هاتفك المسروق في CheckMyDevice. ما البيانات المطلوبة، كيف تثبت الملكية، وما يحدث بعد القبول.',
+    canonical: `${BASE_URL}/blog/how-to-report-stolen-phone`,
+    keywords: 'كيف أبلغ عن هاتف مسروق, تسجيل بلاغ سرقة هاتف, إثبات ملكية هاتف, الإبلاغ عن جهاز مسروق',
+  },
+
   // ── Admin pages (title only — no public indexing) ──────────────
   'admin/dashboard': {
     title: 'لوحة التحكم | Admin — CheckMyDevice',

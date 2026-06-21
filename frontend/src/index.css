@@ -61,3 +61,31 @@
 /* Fade in */
 .fade-in { animation: fadeIn 0.3s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Blog article prose styles ────────────────────────────────── */
+@layer components {
+  .prose-article h2 {
+    @apply text-xl font-bold text-gray-900 mt-8 mb-3;
+  }
+  .prose-article h3 {
+    @apply text-lg font-semibold text-gray-900 mt-6 mb-2;
+  }
+  .prose-article p {
+    @apply text-gray-600 leading-relaxed mb-4 text-sm;
+  }
+  .prose-article ul {
+    @apply space-y-1.5 mb-4;
+  }
+  .prose-article li {
+    @apply text-gray-600 text-sm leading-relaxed;
+  }
+  .prose-article strong {
+    @apply font-semibold text-gray-900;
+  }
+  .prose-article a {
+    @apply text-primary-700 hover:underline;
+  }
+  .prose-article section:first-child h2 {
+    @apply mt-0;
+  }
+}

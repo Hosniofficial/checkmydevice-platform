@@ -24,6 +24,12 @@ const FOOTER_LINKS = {
     { to: '/contact',   label: 'تواصل معنا' },
     { to: '/faq',       label: 'الأسئلة الشائعة' },
   ],
+  'المدونة': [
+    { to: '/blog/free-imei-check',            label: 'فحص IMEI مجاني' },
+    { to: '/blog/how-to-check-stolen-phone',  label: 'كيف أعرف أن الهاتف مسروق؟' },
+    { to: '/blog/what-to-do-if-phone-stolen', label: 'سُرق هاتفي — ماذا أفعل؟' },
+    { to: '/blog/how-to-report-stolen-phone', label: 'كيف أبلغ عن هاتف مسروق؟' },
+  ],
   'قانوني': [
     { to: '/privacy',   label: 'سياسة الخصوصية' },
     { to: '/terms',     label: 'شروط الاستخدام' },
