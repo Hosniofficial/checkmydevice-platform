@@ -7,6 +7,32 @@ import { lookupDevice, validateIMEI } from '../../services/deviceLookup.service.
 import { getUserSearchLimit } from '../../services/subscription.service.js';
 import { sendDeviceSearchedAlert } from '../../services/email.service.js';
 import { cacheGet, cacheSet, KEY, TTL } from '../../services/redis.service.js';
+import geoip from 'geoip-lite';
+
+// ─── Arabic country names (used in email notifications) ───────────
+const COUNTRY_NAMES_AR = {
+  EG: 'مصر', SA: 'السعودية', AE: 'الإمارات', KW: 'الكويت',
+  QA: 'قطر', BH: 'البحرين', OM: 'عُمان', JO: 'الأردن',
+  LB: 'لبنان', IQ: 'العراق', SY: 'سوريا', YE: 'اليمن',
+  LY: 'ليبيا', TN: 'تونس', DZ: 'الجزائر', MA: 'المغرب',
+  SD: 'السودان', PS: 'فلسطين', SO: 'الصومال', MR: 'موريتانيا',
+  US: 'الولايات المتحدة', GB: 'المملكة المتحدة', DE: 'ألمانيا',
+  FR: 'فرنسا', TR: 'تركيا', IN: 'الهند', PK: 'باكستان',
+  CN: 'الصين', RU: 'روسيا', NG: 'نيجيريا', ET: 'إثيوبيا',
+};
+
+function getCountryFromIp(ip) {
+  // Prefer Cloudflare header (when behind CF CDN)
+  // Otherwise fall back to local geoip lookup
+  if (!ip || ip === '127.0.0.1' || ip === '::1') return null;
+  try {
+    const geo = geoip.lookup(ip);
+    if (!geo?.country) return null;
+    return COUNTRY_NAMES_AR[geo.country] || geo.country;
+  } catch {
+    return null;
+  }
+}
 
 const router = Router();
 
@@ -100,8 +126,10 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
         model: activeReports[0].model,
         imei:  trimmed,
       }, {
-        country:    req.headers['cf-ipcountry'] || null,
-        searchedAt: new Date().toISOString(),   // actual search time
+        country:    req.headers['cf-ipcountry']
+                      ? (COUNTRY_NAMES_AR[req.headers['cf-ipcountry']] || req.headers['cf-ipcountry'])
+                      : getCountryFromIp(ip),
+        searchedAt: new Date().toISOString(),
       }).catch(console.error);
     }
   }
