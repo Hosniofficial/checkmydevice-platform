@@ -40,12 +40,12 @@ const ROUTES = [
   '/blog/how-to-report-stolen-phone',
 ];
 
-// Required meta tags — build will warn if any are missing
+// Required meta tags — use regex to handle both single and double quotes
 const REQUIRED_META = [
-  'name="description"',
-  'property="og:title"',
-  'property="og:description"',
-  'rel="canonical"',
+  /<meta[^>]+name=["']description["']/,
+  /<meta[^>]+property=["']og:title["']/,
+  /<meta[^>]+property=["']og:description["']/,
+  /<link[^>]+rel=["']canonical["']/,
 ];
 
 // ── Resolve Puppeteer (local vs Vercel/CI) ────────────────────
@@ -117,26 +117,23 @@ function startServer() {
       }
     });
 
-    server.listen(BASE_PORT, () => {
-      serverPort = BASE_PORT;
+    // Single source of truth — resolvePromise called only here
+    server.on('listening', () => {
+      const addr = server.address();
+      serverPort = addr.port;
       console.log(`[Prerender] Static server at http://localhost:${serverPort}`);
       resolvePromise({ server, port: serverPort });
     });
 
-    // Expose port via closure after successful listen on fallback port
-    server.on('listening', () => {
-      const addr = server.address();
-      serverPort = addr.port;
-      resolvePromise({ server, port: serverPort });
-    });
+    server.listen(BASE_PORT);
   });
 }
 
 // ── Verify required SEO meta tags ─────────────────────────────
 function checkMeta(html, route) {
-  const missing = REQUIRED_META.filter(tag => !html.includes(tag));
+  const missing = REQUIRED_META.filter(regex => !regex.test(html));
   if (missing.length > 0) {
-    console.warn(`[Prerender] ⚠️  ${route} missing meta: ${missing.join(', ')}`);
+    console.warn(`[SEO] ⚠️  ${route} — missing ${missing.length} required tag(s)`);
   }
 }
 

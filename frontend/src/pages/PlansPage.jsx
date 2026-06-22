@@ -40,11 +40,17 @@ export default function PlansPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout for prerender
+    const timeout = setTimeout(() => controller.abort(), 3000);
 
     api.get('/plans', { signal: controller.signal })
       .then(r => setPlans(r.data.data))
-      .catch(() => {}) // silently fail — shows empty state
+      .catch((err) => {
+        // Ignore AbortError (caused by timeout or component unmount)
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+          console.error('Plans loading failed:', err);
+        }
+        setPlans([]); // ensure loading state clears even on failure
+      })
       .finally(() => {
         clearTimeout(timeout);
         setLoading(false);
