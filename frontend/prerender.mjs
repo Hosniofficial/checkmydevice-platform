@@ -3,21 +3,24 @@
  * ─────────────────────────────────────────────────────────────────
  * Post-build script: serves dist/ with a local static server,
  * visits every public route with Puppeteer, waits for React to
- * hydrate, then writes the rendered HTML back to dist/<route>/index.html
+ * render, then writes the full HTML to dist/<route>/index.html.
  *
- * Run:  node prerender.mjs
- * (automatically called by `npm run build` via the `postbuild` hook)
+ * Works in two environments:
+ *  - Local dev:   uses full `puppeteer` package (Chrome downloaded automatically)
+ *  - Vercel/CI:   uses `puppeteer-core` + `@sparticuz/chromium` (lightweight binary)
+ *
+ * Called automatically via `postbuild` in package.json.
  */
 
-import puppeteer       from 'puppeteer';
-import { createServer } from 'http';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { createServer }                           from 'http';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { existsSync }                             from 'fs';
+import { join, resolve }                          from 'path';
+import { fileURLToPath }                          from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST      = resolve(__dirname, 'dist');
-const PORT      = 4173;
+const BASE_PORT = 4173;
 
 // ── Public routes to prerender ─────────────────────────────────
 const ROUTES = [
@@ -37,70 +40,114 @@ const ROUTES = [
   '/blog/how-to-report-stolen-phone',
 ];
 
+// Required meta tags — build will warn if any are missing
+const REQUIRED_META = [
+  'name="description"',
+  'property="og:title"',
+  'property="og:description"',
+  'rel="canonical"',
+];
+
+// ── Resolve Puppeteer (local vs Vercel/CI) ────────────────────
+async function getBrowser() {
+  const isCI = process.env.CI === 'true' || process.env.VERCEL === '1';
+
+  if (isCI) {
+    // Vercel / CI: use lightweight Chromium binary
+    const chromium       = (await import('@sparticuz/chromium')).default;
+    const puppeteerCore  = (await import('puppeteer-core')).default;
+    return puppeteerCore.launch({
+      args:            chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath:  await chromium.executablePath(),
+      headless:        chromium.headless,
+    });
+  } else {
+    // Local: use full Puppeteer with bundled Chromium
+    const puppeteer = (await import('puppeteer')).default;
+    return puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+  }
+}
+
 // ── Minimal static file server ─────────────────────────────────
 function getMimeType(filePath) {
-  if (filePath.endsWith('.js'))   return 'application/javascript';
-  if (filePath.endsWith('.css'))  return 'text/css';
-  if (filePath.endsWith('.png'))  return 'image/png';
-  if (filePath.endsWith('.ico'))  return 'image/x-icon';
-  if (filePath.endsWith('.svg'))  return 'image/svg+xml';
+  if (filePath.endsWith('.js'))          return 'application/javascript';
+  if (filePath.endsWith('.css'))         return 'text/css';
+  if (filePath.endsWith('.png'))         return 'image/png';
+  if (filePath.endsWith('.ico'))         return 'image/x-icon';
+  if (filePath.endsWith('.svg'))         return 'image/svg+xml';
   if (filePath.endsWith('.webmanifest')) return 'application/manifest+json';
-  if (filePath.endsWith('.xml'))  return 'application/xml';
-  if (filePath.endsWith('.txt'))  return 'text/plain';
+  if (filePath.endsWith('.xml'))         return 'application/xml';
+  if (filePath.endsWith('.txt'))         return 'text/plain';
   return 'text/html';
 }
 
 function startServer() {
   return new Promise((resolvePromise, reject) => {
+    let serverPort = BASE_PORT;
+
     const server = createServer((req, res) => {
       let filePath = join(DIST, req.url === '/' ? 'index.html' : req.url);
+      filePath = filePath.split('?')[0]; // strip query strings
 
-      // Strip query strings
-      filePath = filePath.split('?')[0];
-
-      // SPA fallback — serve index.html for unknown paths
       if (!existsSync(filePath) || filePath.endsWith('/')) {
         filePath = join(DIST, 'index.html');
       }
 
       try {
         const content  = readFileSync(filePath);
-        const mimeType = getMimeType(filePath);
-        res.writeHead(200, { 'Content-Type': mimeType });
+        res.writeHead(200, { 'Content-Type': getMimeType(filePath) });
         res.end(content);
       } catch {
-        const html = readFileSync(join(DIST, 'index.html'));
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(html);
+        res.end(readFileSync(join(DIST, 'index.html')));
       }
     });
 
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        console.warn(`[Prerender] Port ${PORT} in use, trying ${PORT + 1}`);
-        server.listen(PORT + 1);
+        serverPort = BASE_PORT + 1;
+        console.warn(`[Prerender] Port ${BASE_PORT} in use, trying ${serverPort}`);
+        server.listen(serverPort);
       } else {
         reject(err);
       }
     });
 
-    server.listen(PORT, () => {
-      console.log(`[Prerender] Static server running at http://localhost:${PORT}`);
-      resolvePromise(server);
+    server.listen(BASE_PORT, () => {
+      serverPort = BASE_PORT;
+      console.log(`[Prerender] Static server at http://localhost:${serverPort}`);
+      resolvePromise({ server, port: serverPort });
+    });
+
+    // Expose port via closure after successful listen on fallback port
+    server.on('listening', () => {
+      const addr = server.address();
+      serverPort = addr.port;
+      resolvePromise({ server, port: serverPort });
     });
   });
+}
+
+// ── Verify required SEO meta tags ─────────────────────────────
+function checkMeta(html, route) {
+  const missing = REQUIRED_META.filter(tag => !html.includes(tag));
+  if (missing.length > 0) {
+    console.warn(`[Prerender] ⚠️  ${route} missing meta: ${missing.join(', ')}`);
+  }
 }
 
 // ── Main ────────────────────────────────────────────────────────
 async function main() {
   console.log('[Prerender] Starting prerender process...');
-  console.log(`[Prerender] Routes to process: ${ROUTES.length}`);
+  console.log(`[Prerender] Environment: ${process.env.VERCEL === '1' ? 'Vercel' : process.env.CI === 'true' ? 'CI' : 'Local'}`);
+  console.log(`[Prerender] Routes: ${ROUTES.length}`);
 
-  const server  = await startServer();
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
+  const { server, port } = await startServer();
+  const browser          = await getBrowser();
 
   let succeeded = 0;
   let failed    = 0;
@@ -109,44 +156,42 @@ async function main() {
     try {
       const page = await browser.newPage();
 
-      // Block unnecessary resources to speed up rendering
-      await page.setRequestInterception(true);
-      page.on('request', (req) => {
-        const type = req.resourceType();
-        if (['image', 'font', 'media'].includes(type)) {
-          req.abort();
-        } else {
-          req.continue();
-        }
-      });
-
-      // Pages that load data from API need special handling —
-      // they show a spinner while fetching, so we grab the HTML
-      // with correct <head> meta even if body content is spinner
+      // Pages that call external APIs during build can't reach networkidle
+      // or have meaningful DOM content — handle them separately
       const apiPages = ['/plans'];
 
+      await page.goto(`http://localhost:${port}${route}`, {
+        waitUntil: 'load',
+        timeout:   30000,
+      });
+
       if (apiPages.includes(route)) {
-        await page.goto(`http://localhost:${PORT}${route}`, {
-          waitUntil: 'domcontentloaded',
-          timeout: 20000,
-        });
-        // Short delay for React to mount and inject helmet meta tags
-        await new Promise(r => setTimeout(r, 1500));
+        // Wait for the API abort timeout (3s) + React re-render
+        await new Promise(r => setTimeout(r, 4000));
       } else {
-        await page.goto(`http://localhost:${PORT}${route}`, {
-          waitUntil: 'networkidle0',
-          timeout: 20000,
-        });
-        // Wait for React to finish rendering
+        // Wait for network to be idle (tolerates analytics pings)
+        try {
+          await page.waitForNetworkIdle({ idleTime: 1000, timeout: 8000 });
+        } catch {
+          // Acceptable — some pages never fully idle
+        }
+
+        // Ensure #root has meaningful content
         await page.waitForFunction(
-          () => document.querySelector('#root') && document.querySelector('#root').innerHTML.length > 100,
-          { timeout: 10000 }
+          () => {
+            const root = document.querySelector('#root');
+            return root && root.innerHTML.length > 200;
+          },
+          { timeout: 8000 }
         );
       }
 
       const html = await page.content();
 
-      // Write to correct location
+      // Validate required SEO tags
+      checkMeta(html, route);
+
+      // Write output
       if (route === '/') {
         writeFileSync(join(DIST, 'index.html'), html, 'utf8');
       } else {
@@ -168,8 +213,6 @@ async function main() {
   server.close();
 
   console.log(`\n[Prerender] Done — ${succeeded} succeeded, ${failed} failed`);
-  // Don't fail the build if some pages couldn't be prerendered
-  // (e.g. /plans needs live API — it still works at runtime)
   if (failed === ROUTES.length) process.exit(1);
 }
 

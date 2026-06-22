@@ -1,23 +1,22 @@
 {
-  "buildCommand": "",
-  "installCommand": "",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/dashboard",          "destination": "/index.html" },
-    { "source": "/dashboard/(.*)",     "destination": "/index.html" },
-    { "source": "/reports",            "destination": "/index.html" },
-    { "source": "/reports/(.*)",       "destination": "/index.html" },
-    { "source": "/notifications",      "destination": "/index.html" },
-    { "source": "/profile",            "destination": "/index.html" },
-    { "source": "/admin",              "destination": "/index.html" },
-    { "source": "/admin/(.*)",         "destination": "/index.html" },
-    { "source": "/login",              "destination": "/index.html" },
-    { "source": "/register",           "destination": "/index.html" },
-    { "source": "/forgot-password",    "destination": "/index.html" },
-    { "source": "/reset-password",     "destination": "/index.html" },
-    { "source": "/verify-email",       "destination": "/index.html" }
+    { "source": "/dashboard",       "destination": "/index.html" },
+    { "source": "/dashboard/(.*)", "destination": "/index.html" },
+    { "source": "/reports",         "destination": "/index.html" },
+    { "source": "/reports/(.*)",   "destination": "/index.html" },
+    { "source": "/notifications",   "destination": "/index.html" },
+    { "source": "/profile",         "destination": "/index.html" },
+    { "source": "/admin",           "destination": "/index.html" },
+    { "source": "/admin/(.*)",     "destination": "/index.html" },
+    { "source": "/login",           "destination": "/index.html" },
+    { "source": "/register",        "destination": "/index.html" },
+    { "source": "/forgot-password", "destination": "/index.html" },
+    { "source": "/reset-password",  "destination": "/index.html" },
+    { "source": "/verify-email",    "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -29,9 +28,9 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "X-Frame-Options",         "value": "DENY" },
+        { "key": "X-Content-Type-Options",  "value": "nosniff" },
+        { "key": "Referrer-Policy",          "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]

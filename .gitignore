@@ -5,8 +5,8 @@ node_modules/
 package-lock.json
 
 # Production builds
-# dist/ is committed when prerendered locally via npm run build:prerender
-# build/
+dist/
+build/
 
 # Environment variables (NEVER commit these)
 .env

@@ -39,10 +39,18 @@ export default function PlansPage() {
   const [yearly, setYearly] = useState(false);
 
   useEffect(() => {
-    api.get('/plans')
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout for prerender
+
+    api.get('/plans', { signal: controller.signal })
       .then(r => setPlans(r.data.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch(() => {}) // silently fail — shows empty state
+      .finally(() => {
+        clearTimeout(timeout);
+        setLoading(false);
+      });
+
+    return () => { clearTimeout(timeout); controller.abort(); };
   }, []);
 
   if (loading) return <div className="flex justify-center py-20"><Spinner size={40}/></div>;
