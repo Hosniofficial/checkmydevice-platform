@@ -15,7 +15,6 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
   },
   define: {
-    // Expose API base URL — overridden by VITE_API_URL env var in production
     __API_BASE__: JSON.stringify(
       mode === 'production'
         ? (process.env.VITE_API_URL || 'https://checkmydevice-api.onrender.com')
