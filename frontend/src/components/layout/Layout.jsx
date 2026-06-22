@@ -13,29 +13,6 @@ const NAV_LINKS = [
   { to: '/faq',    label: 'مساعدة' },
 ];
 
-const FOOTER_LINKS = {
-  'الخدمات': [
-    { to: '/search',    label: 'فحص جهاز' },
-    { to: '/reports/new', label: 'الإبلاغ عن جهاز' },
-    { to: '/plans',     label: 'الخطط والأسعار' },
-  ],
-  'الشركة': [
-    { to: '/about',     label: 'من نحن' },
-    { to: '/contact',   label: 'تواصل معنا' },
-    { to: '/faq',       label: 'الأسئلة الشائعة' },
-  ],
-  'المدونة': [
-    { to: '/blog/free-imei-check',            label: 'فحص IMEI مجاني' },
-    { to: '/blog/how-to-check-stolen-phone',  label: 'كيف أعرف أن الهاتف مسروق؟' },
-    { to: '/blog/what-to-do-if-phone-stolen', label: 'سُرق هاتفي — ماذا أفعل؟' },
-    { to: '/blog/how-to-report-stolen-phone', label: 'كيف أبلغ عن هاتف مسروق؟' },
-  ],
-  'قانوني': [
-    { to: '/privacy',   label: 'سياسة الخصوصية' },
-    { to: '/terms',     label: 'شروط الاستخدام' },
-  ],
-};
-
 export default function Layout() {
   const { user, logout, isAdmin } = useAuthStore();
   const navigate  = useNavigate();
@@ -195,15 +172,18 @@ export default function Layout() {
 
       {/* ── Footer ─────────────────────────────────────────────── */}
       <footer className="bg-primary-700 text-white mt-16">
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="max-w-6xl mx-auto px-4 py-10">
+
+          {/* Main row: brand + 3 link columns */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+
             {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <img src="/Logo.png" alt="CheckMyDevice" className="w-7 h-7 object-contain rounded-lg brightness-0 invert" />
                 <span className="font-bold text-lg">CheckMyDevice</span>
               </div>
-              <p className="text-blue-200 text-sm leading-relaxed mb-4">
+              <p className="text-blue-200 text-sm leading-relaxed mb-3">
                 أول منصة عربية لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء.
               </p>
               <a href="mailto:support@checkmydevice.online"
@@ -212,26 +192,76 @@ export default function Layout() {
               </a>
             </div>
 
-            {/* Links */}
-            {Object.entries(FOOTER_LINKS).map(([title, links]) => (
-              <div key={title}>
-                <h4 className="font-semibold mb-3 text-sm">{title}</h4>
-                <ul className="space-y-2">
-                  {links.map(({ to, label }) => (
-                    <li key={to}>
-                      <Link to={to}
-                        className="text-blue-200 text-sm hover:text-white transition-colors">
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {/* خدمات */}
+            <div>
+              <h4 className="font-semibold mb-3 text-sm">الخدمات</h4>
+              <ul className="space-y-2">
+                {[
+                  { to: '/search',      label: 'فحص جهاز' },
+                  { to: '/reports/new', label: 'الإبلاغ عن جهاز' },
+                  { to: '/plans',       label: 'الخطط والأسعار' },
+                ].map(({ to, label }) => (
+                  <li key={to}>
+                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* الشركة */}
+            <div>
+              <h4 className="font-semibold mb-3 text-sm">الشركة</h4>
+              <ul className="space-y-2">
+                {[
+                  { to: '/about',   label: 'من نحن' },
+                  { to: '/contact', label: 'تواصل معنا' },
+                  { to: '/faq',     label: 'الأسئلة الشائعة' },
+                  { to: '/blog',    label: 'المدونة' },
+                ].map(({ to, label }) => (
+                  <li key={to}>
+                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* قانوني */}
+            <div>
+              <h4 className="font-semibold mb-3 text-sm">قانوني</h4>
+              <ul className="space-y-2">
+                {[
+                  { to: '/privacy', label: 'سياسة الخصوصية' },
+                  { to: '/terms',   label: 'شروط الاستخدام' },
+                ].map(({ to, label }) => (
+                  <li key={to}>
+                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Blog strip — compact horizontal row */}
+          <div className="border-t border-blue-600/50 pt-6 mb-6">
+            <p className="text-xs text-blue-400 mb-3 font-medium">من المدونة</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              {[
+                { to: '/blog/free-imei-check',            label: 'فحص IMEI مجاني' },
+                { to: '/blog/how-to-check-stolen-phone',  label: 'كيف أعرف أن الهاتف مسروق؟' },
+                { to: '/blog/what-to-do-if-phone-stolen', label: 'سُرق هاتفي — ماذا أفعل؟' },
+                { to: '/blog/what-to-do-if-phone-lost',   label: 'ضاع هاتفي — ماذا أفعل؟' },
+                { to: '/blog/how-to-report-stolen-phone', label: 'كيف أبلغ عن هاتف مسروق؟' },
+              ].map(({ to, label }) => (
+                <Link key={to} to={to}
+                  className="text-blue-300 text-xs hover:text-white transition-colors">
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-blue-600 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-blue-300 text-xs">
+          <div className="border-t border-blue-600 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-blue-300 text-xs">
             <span>© 2026 CheckMyDevice — جميع الحقوق محفوظة</span>
             <div className="flex gap-4">
               <Link to="/privacy" className="hover:text-white transition-colors">الخصوصية</Link>
@@ -243,6 +273,7 @@ export default function Layout() {
               <span>جميع الأنظمة تعمل</span>
             </div>
           </div>
+
         </div>
       </footer>
     </div>
