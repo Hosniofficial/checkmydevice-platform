@@ -51,7 +51,7 @@ function getMimeType(filePath) {
 }
 
 function startServer() {
-  return new Promise((resolvePromise) => {
+  return new Promise((resolvePromise, reject) => {
     const server = createServer((req, res) => {
       let filePath = join(DIST, req.url === '/' ? 'index.html' : req.url);
 
@@ -72,6 +72,15 @@ function startServer() {
         const html = readFileSync(join(DIST, 'index.html'));
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
+      }
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`[Prerender] Port ${PORT} in use, trying ${PORT + 1}`);
+        server.listen(PORT + 1);
+      } else {
+        reject(err);
       }
     });
 
