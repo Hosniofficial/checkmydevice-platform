@@ -18,21 +18,25 @@ export async function getActiveSubscription(userId) {
 }
 
 export async function getUserSearchLimit(user) {
+  // Guest (not logged in) — hard limit of 5 per day
   if (!user) return 5;
+
+  // Admins — unlimited
   if (['admin', 'super_admin'].includes(user.role)) return 99999;
 
-  // Check active subscription first — applies to both users and merchants
+  // Check active paid subscription first
   const sub = await getActiveSubscription(user.id);
   if (sub) return sub.daily_search_limit;
 
-  // No active subscription — fallback by role
-  if (user.role === 'merchant') return 9999;  // merchant without subscription
+  // Merchant without subscription
+  if (user.role === 'merchant') return 9999;
 
-  // Regular user — fallback to free plan limit from DB
+  // Regular registered user — free plan = 20/day
+  // We read from DB so the admin can change it without code deployment
   const { rows } = await query(
     `SELECT daily_search_limit FROM plans WHERE plan_type = 'free' AND is_active = TRUE LIMIT 1`
   );
-  return rows[0]?.daily_search_limit ?? 5;
+  return rows[0]?.daily_search_limit ?? 20; // fallback 20 if free plan not seeded
 }
 
 async function ensureMerchantAccount(userId, businessName) {

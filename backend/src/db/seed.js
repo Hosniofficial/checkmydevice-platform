@@ -13,8 +13,8 @@ async function seed() {
       INSERT INTO plans (name_ar, name_en, plan_type, price_monthly, price_yearly, currency,
         daily_search_limit, monthly_search_limit, bulk_search_enabled, api_access, features)
       VALUES
-        ('مجاني','Free','free', 0, 0,'EGP', 5, 150, FALSE, FALSE,
-          '{"searches":5,"reports":true,"notifications":true}'),
+        ('مجاني','Free','free', 0, 0,'EGP', 20, 600, FALSE, FALSE,
+          '{"searches":20,"reports":true,"notifications":true,"history":true}'),
         ('أساسي','Basic','basic', 99, 990,'EGP', 50, 1500, FALSE, FALSE,
           '{"searches":50,"reports":true,"notifications":true,"history":true}'),
         ('احترافي','Professional','professional', 299, 2990,'EGP', 500, 15000, TRUE, TRUE,

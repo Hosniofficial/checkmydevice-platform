@@ -107,6 +107,13 @@ CREATE INDEX IF NOT EXISTS idx_device_cache_imei ON device_cache(imei);
 -- Ensure last_search_notified_at exists for email rate limiting
 ALTER TABLE IF EXISTS devices_reports ADD COLUMN IF NOT EXISTS last_search_notified_at TIMESTAMP;
 
+-- Fix free plan daily_search_limit: registered users get 20, guests get 5 (enforced in code)
+UPDATE plans SET
+  daily_search_limit  = 20,
+  monthly_search_limit = 600,
+  features = '{"searches":20,"reports":true,"notifications":true,"history":true}'
+WHERE plan_type = 'free';
+
 -- ─── SEARCH_LOGS ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS search_logs (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
