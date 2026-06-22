@@ -125,7 +125,7 @@ export default function WhatToDoIfPhoneStolenPage() {
                       {step.link && (
                         <Link
                           to={step.link.to}
-                          className="inline-block mt-2 text-xs font-semibold bg-primary-700 text-white px-3 py-1.5 rounded-lg hover:bg-primary-900 transition-colors"
+                          className="inline-block mt-2 text-xs font-semibold bg-white text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors border border-primary-200"
                         >
                           {step.link.label}
                         </Link>

@@ -106,7 +106,7 @@ export default function WhatToDoIfPhoneLostPage() {
           </div>
           <Link
             to="/reports/new"
-            className="inline-block bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-900 transition-colors"
+            className="inline-block bg-white text-primary-700 text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-50 transition-colors border border-primary-200"
           >
             سجّل بلاغ مفقود الآن
           </Link>

@@ -87,7 +87,7 @@ export default function HowToReportStolenPhonePage() {
                   <p className="font-semibold text-gray-900 text-sm mb-1">{title}</p>
                   <p className="text-gray-500 text-sm leading-relaxed mb-2">{desc}</p>
                   {link && (
-                    <Link to={link.to} className="inline-block text-xs bg-primary-700 text-white px-3 py-1.5 rounded-lg hover:bg-primary-900 transition-colors font-medium">
+                    <Link to={link.to} className="inline-block text-xs bg-white text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors font-medium border border-primary-200">
                       {link.label}
                     </Link>
                   )}

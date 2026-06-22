@@ -268,10 +268,6 @@ export default function Layout() {
               <Link to="/terms"   className="hover:text-white transition-colors">الشروط</Link>
               <Link to="/contact" className="hover:text-white transition-colors">تواصل</Link>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span>جميع الأنظمة تعمل</span>
-            </div>
           </div>
 
         </div>
