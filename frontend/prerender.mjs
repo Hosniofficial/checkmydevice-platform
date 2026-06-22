@@ -54,14 +54,18 @@ async function getBrowser() {
 
   if (isCI) {
     // Vercel / CI: use lightweight Chromium binary
-    const chromium       = (await import('@sparticuz/chromium')).default;
-    const puppeteerCore  = (await import('puppeteer-core')).default;
-    return puppeteerCore.launch({
-      args:            chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath:  await chromium.executablePath(),
-      headless:        chromium.headless,
-    });
+    try {
+      const chromium       = (await import('@sparticuz/chromium')).default;
+      const puppeteerCore  = (await import('puppeteer-core')).default;
+      return puppeteerCore.launch({
+        args:            chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath:  await chromium.executablePath(),
+        headless:        chromium.headless,
+      });
+    } catch (err) {
+      throw new Error(`@sparticuz/chromium not available: ${err.message}. Make sure it is in dependencies (not devDependencies).`);
+    }
   } else {
     // Local: use full Puppeteer with bundled Chromium
     const puppeteer = (await import('puppeteer')).default;
