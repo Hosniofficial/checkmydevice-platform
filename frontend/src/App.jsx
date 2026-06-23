@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/auth.store.js';
 
@@ -21,6 +21,7 @@ import PrivacyPage         from './pages/PrivacyPage.jsx';
 import TermsPage           from './pages/TermsPage.jsx';
 import ContactPage         from './pages/ContactPage.jsx';
 import FAQPage             from './pages/FAQPage.jsx';
+import NotFoundPage        from './pages/NotFoundPage.jsx';
 
 // ── Blog / SEO pages ──────────────────────────────────────────────
 import BlogIndexPage             from './pages/blog/BlogIndexPage.jsx';
@@ -121,7 +122,7 @@ function App() {
         </Route>
 
         {/* ── 404 ────────────────────────────────────────────── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
