@@ -4,7 +4,7 @@ import SEOHead from '../components/SEOHead.jsx';
 import {
   Search, Info, Phone, Mail,
   Smartphone, Laptop, Tablet, Gift, ShieldCheck, ShieldAlert,
-  HelpCircle, Clock,
+  HelpCircle, Clock, Calendar,
 } from 'lucide-react';
 import api from '../lib/api.js';
 import { Spinner } from '../components/ui/index.jsx';
@@ -12,41 +12,58 @@ import toast from 'react-hot-toast';
 import { getCountryName } from '../lib/countries.js';
 import { formatDate, formatDateTime } from '../lib/format.js';
 
-// ── helpers ───────────────────────────────────────────────────────
-const DEVICE_TYPE = {
-  phone:  { icon: Smartphone, label: 'هاتف' },
-  tablet: { icon: Tablet,     label: 'تابلت' },
-  laptop: { icon: Laptop,     label: 'لابتوب' },
+// ── Brand image map ───────────────────────────────────────────────
+const BRAND_IMAGE = {
+  apple:   '/brands/apple.png',
+  iphone:  '/brands/apple.png',
+  samsung: '/brands/samsung.png',
+  huawei:  '/brands/huawei.png',
+  xiaomi:  '/brands/xiaomi.png',
+  oppo:    '/brands/oppo.png',
+  vivo:    '/brands/vivo.png',
+  realme:  '/brands/realme.png',
+  honor:   '/brands/honor.png',
+  infinix: '/brands/infinix.png',
+  nokia:   '/brands/nokia.png',
 };
 
-function DeviceTypeIcon({ type, className = 'w-5 h-5' }) {
-  const cfg  = DEVICE_TYPE[type] || DEVICE_TYPE.phone;
-  const Icon = cfg.icon;
-  return <Icon className={className} strokeWidth={1.8} />;
+function getBrandImage(brand) {
+  if (!brand) return '/brands/other.png';
+  const key = brand.toLowerCase().replace(/[^a-z]/g, '');
+  return BRAND_IMAGE[key] || '/brands/other.png';
 }
 
-function whatsAppHref(number) {
-  if (!number) return null;
-  const digits = number.replace(/\D/g, '');
-  return digits ? `https://wa.me/${digits}` : null;
-}
-
-// ── Result status config ──────────────────────────────────────────
+// ── Status config ─────────────────────────────────────────────────
 const STATUS_CONFIG = {
   clean: {
-    bg: 'bg-green-50', border: 'border-green-200',
-    icon: ShieldCheck, iconColor: 'text-green-600', iconBg: 'bg-green-100',
-    title: 'الجهاز نظيف', titleColor: 'text-green-800',
+    gradient:  'from-emerald-600 to-teal-700',
+    cardBg:    'bg-gradient-to-br from-emerald-50 to-teal-50',
+    border:    'border-emerald-200',
+    badgeBg:   'bg-emerald-500',
+    icon:      ShieldCheck,
+    label:     'جهاز سليم',
+    desc:      'لا يوجد بلاغ مسروق على هذا الجهاز',
+    textColor: 'text-emerald-700',
   },
   stolen: {
-    bg: 'bg-red-50', border: 'border-red-300',
-    icon: ShieldAlert, iconColor: 'text-red-600', iconBg: 'bg-red-100',
-    title: 'جهاز مسروق', titleColor: 'text-red-800',
+    gradient:  'from-red-600 to-rose-700',
+    cardBg:    'bg-gradient-to-br from-red-50 to-rose-50',
+    border:    'border-red-200',
+    badgeBg:   'bg-red-500',
+    icon:      ShieldAlert,
+    label:     'جهاز مسروق',
+    desc:      'تم الإبلاغ عن هذا الجهاز كمسروق',
+    textColor: 'text-red-700',
   },
   lost: {
-    bg: 'bg-amber-50', border: 'border-amber-300',
-    icon: HelpCircle, iconColor: 'text-amber-600', iconBg: 'bg-amber-100',
-    title: 'جهاز مفقود', titleColor: 'text-amber-800',
+    gradient:  'from-amber-500 to-orange-600',
+    cardBg:    'bg-gradient-to-br from-amber-50 to-orange-50',
+    border:    'border-amber-200',
+    badgeBg:   'bg-amber-500',
+    icon:      HelpCircle,
+    label:     'جهاز مفقود',
+    desc:      'تم الإبلاغ عن هذا الجهاز كمفقود',
+    textColor: 'text-amber-700',
   },
 };
 
@@ -64,6 +81,178 @@ function QuotaBar({ quota }) {
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Device Result Card ────────────────────────────────────────────
+function DeviceResultCard({ result }) {
+  const cfg        = STATUS_CONFIG[result.status] || STATUS_CONFIG.clean;
+  const StatusIcon = cfg.icon;
+  const info       = result.device_info;
+  const brandImg   = getBrandImage(info?.brand);
+
+  // model_code already contains the full display string e.g. "iPhone 12 Pro Max (A2412)"
+  // fall back to model if model_code is absent
+  const modelName = (info?.model      || '').trim();
+  const modelCode = (info?.model_code || '').trim();
+
+  const DEVICE_LABELS = { phone: 'هاتف', tablet: 'تابلت', laptop: 'لابتوب' };
+
+  const specs = [
+    { label: 'النوع',        value: DEVICE_LABELS[info?.device_type] || info?.device_type },
+    { label: 'الموديل',      value: modelName },
+    { label: 'الكود التقني', value: modelCode, mono: true },
+    { label: 'السعة',        value: info?.storage },
+    { label: 'الشبكة',       value: info?.network },
+    { label: 'حالة الجهاز',  value: cfg.label, highlight: true },
+  ].filter(x => x.value);
+
+  return (
+    <div className={`rounded-3xl overflow-hidden shadow-lg border ${cfg.border} fade-in`}>
+
+      {/* ── Header bar: brand name + logo ────────────────────── */}
+      <div className={`bg-gradient-to-l ${cfg.gradient} px-5 py-3 flex items-center justify-between`}>
+        <div className="flex items-center gap-2">
+          <StatusIcon className="w-5 h-5 text-white/90" />
+          <span className="text-white font-bold text-base">{info?.brand || 'جهاز'}</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-white/20 rounded-xl px-3 py-1.5">
+          <img src="/Logo.png" alt="CheckMyDevice" className="w-4 h-4 object-contain brightness-0 invert" />
+          <span className="text-white text-xs font-semibold">CheckMyDevice</span>
+        </div>
+      </div>
+
+      {/* ── Main body: image left, info right ────────────────── */}
+      <div className={`${cfg.cardBg} flex`}>
+
+        {/* Device image */}
+        <div className="relative w-2/5 flex items-end justify-center pt-4 pb-0 overflow-hidden">
+          {/* Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+            <span className="text-gray-200 font-bold text-xl rotate-[-25deg] opacity-40 whitespace-nowrap">
+              CheckMyDevice
+            </span>
+          </div>
+          <img
+            src={brandImg}
+            alt={info?.brand || 'جهاز'}
+            className="relative z-10 w-full max-w-[180px] h-[240px] object-contain drop-shadow-xl"
+            onError={e => { e.target.src = '/brands/other.png'; }}
+          />
+        </div>
+
+        {/* Info panel */}
+        <div className="flex-1 p-5 flex flex-col justify-center gap-3">
+
+          {/* Status badge */}
+          <span className={`inline-flex items-center gap-1.5 self-start ${cfg.badgeBg} text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm`}>
+            <StatusIcon className="w-3.5 h-3.5" />
+            {cfg.label}
+          </span>
+
+          {/* Specs table */}
+          <div className="space-y-2">
+            {specs.map(({ label, value, highlight, mono }) => (
+              <div key={label} className="flex items-center justify-between border-b border-gray-200/60 pb-1.5 last:border-0">
+                <span className="text-xs text-gray-500">{label}</span>
+                <span className={`text-sm font-semibold ${highlight ? cfg.textColor : 'text-gray-900'} ${mono ? 'font-mono text-xs tracking-wide bg-white/70 px-2 py-0.5 rounded-lg' : ''}`} dir="ltr">
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Check timestamp */}
+          <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-gray-300" />
+            تم التحقق في {formatDateTime(result.checked_at)}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Status description bar ────────────────────────────── */}
+      <div className={`px-5 py-3 bg-white border-t ${cfg.border} flex items-center gap-2`}>
+        <StatusIcon className={`w-4 h-4 flex-shrink-0 ${cfg.textColor}`} />
+        <p className={`text-sm font-medium ${cfg.textColor}`}>{cfg.desc}</p>
+      </div>
+
+      {/* ── Reports section ───────────────────────────────────── */}
+      {result.reports?.length > 0 && (
+        <div className="bg-white px-5 pb-5 pt-3 space-y-3 border-t border-gray-100">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">تفاصيل البلاغ</p>
+          {result.reports.map((r, i) => (
+            <div key={i} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full
+                  ${r.report_type === 'stolen' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {r.report_type === 'stolen' ? '🔴 مسروق' : '🟡 مفقود'}
+                </span>
+                {r.report_date && (
+                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(r.report_date)}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {[
+                  ['اللون',   r.color],
+                  ['الدولة',  getCountryName(r.country)],
+                  ['المدينة', r.city],
+                ].filter(([, v]) => v).map(([k, v]) => (
+                  <div key={k}>
+                    <span className="text-xs text-gray-400 block">{k}</span>
+                    <span className="text-sm font-medium text-gray-800">{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              {r.reward_offered && (
+                <div className="flex items-center gap-2 text-green-700 text-xs bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3">
+                  <Gift className="w-4 h-4 flex-shrink-0" />
+                  <span>مكافأة مقدمة{r.reward_amount ? `: ${r.reward_amount}` : ''}</span>
+                </div>
+              )}
+
+              {r.contact_available && (
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500 mb-2">تواصل مع صاحب الجهاز:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {r.whatsapp && (
+                      <a href={`https://wa.me/${r.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
+                        <Phone className="w-3.5 h-3.5" /> واتساب
+                      </a>
+                    )}
+                    {r.phone && (
+                      <a href={`tel:${r.phone.replace(/\s/g,'')}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">
+                        <Phone className="w-3.5 h-3.5" /> هاتف
+                      </a>
+                    )}
+                    {r.email && (
+                      <a href={`mailto:${r.email}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+                        <Mail className="w-3.5 h-3.5" /> إيميل
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Disclaimer ────────────────────────────────────────── */}
+      <div className="bg-gray-50 px-5 py-3 border-t border-gray-100">
+        <p className="text-xs text-gray-400 flex items-start gap-1.5">
+          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          {result.disclaimer_ar}
+        </p>
       </div>
     </div>
   );
@@ -122,8 +311,6 @@ export default function SearchPage() {
 
       {/* Search card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-
-        {/* Type toggle */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
           {[{ v: 'imei', l: 'رقم IMEI' }, { v: 'serial', l: 'الرقم التسلسلي' }].map(({ v, l }) => (
             <button key={v} type="button" onClick={() => setQueryType(v)}
@@ -134,16 +321,12 @@ export default function SearchPage() {
           ))}
         </div>
 
-        {/* Search input */}
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="relative flex-1">
             <Search className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text"
-              inputMode="numeric"
-              dir="ltr"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
+              type="text" inputMode="numeric" dir="ltr"
+              value={query} onChange={e => setQuery(e.target.value)}
               placeholder={queryType === 'imei' ? '356938035643809' : 'C39XXXXXXXXXX'}
               className="input pr-10 font-mono tracking-widest text-base w-full"
               maxLength={20}
@@ -156,13 +339,11 @@ export default function SearchPage() {
           </button>
         </form>
 
-        {/* IMEI hint */}
         {queryType === 'imei' && (
           <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
             💡 اتصل بـ <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">*#06#</span> للحصول على رقم IMEI
           </p>
         )}
-
         <QuotaBar quota={quota} />
       </div>
 
@@ -175,132 +356,7 @@ export default function SearchPage() {
       )}
 
       {/* Result */}
-      {result && !loading && (() => {
-        const cfg  = STATUS_CONFIG[result.status] || STATUS_CONFIG.clean;
-        const Icon = cfg.icon;
-        return (
-          <div className={`rounded-2xl border-2 ${cfg.bg} ${cfg.border} overflow-hidden fade-in`}>
-
-            {/* Status header */}
-            <div className="p-5 flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${cfg.iconBg}`}>
-                <Icon className={`w-7 h-7 ${cfg.iconColor}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className={`text-xl font-bold ${cfg.titleColor}`}>{cfg.title}</h2>
-                <p className="text-sm text-gray-600 mt-0.5 leading-snug">{result.message_ar}</p>
-              </div>
-              {result.device_info && (
-                <div className={`flex-shrink-0 ${cfg.iconColor} opacity-30`}>
-                  <DeviceTypeIcon type={result.device_info.device_type} className="w-10 h-10" />
-                </div>
-              )}
-            </div>
-
-            <div className="px-5 pb-5 space-y-4">
-
-              {/* Device info */}
-              {result.device_info && (
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm">
-                    <DeviceTypeIcon type={result.device_info.device_type} className="w-4 h-4 text-gray-500" />
-                    معلومات الجهاز
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {[
-                      ['الماركة',     result.device_info.brand],
-                      ['الموديل',     result.device_info.model],
-                      ['الكود التقني', result.device_info.model_code],
-                      ['النوع',       DEVICE_TYPE[result.device_info.device_type]?.label || result.device_info.device_type],
-                      ['السعة',       result.device_info.storage],
-                      ['الشبكة',      result.device_info.network],
-                      ['سنة الإصدار', result.device_info.released],
-                    ].filter(([, v]) => v).map(([k, v]) => (
-                      <div key={k}>
-                        <span className="text-xs text-gray-400 block mb-0.5">{k}</span>
-                        <span className="text-sm font-medium text-gray-900">{v}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Reports */}
-              {result.reports?.map((r, i) => (
-                <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full
-                      ${r.report_type === 'stolen' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>
-                      {r.report_type === 'stolen' ? '🔴 مسروق' : '🟡 مفقود'}
-                    </span>
-                    {r.report_date && (
-                      <span className="text-xs text-gray-400">{formatDate(r.report_date)}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    {[
-                      ['الجهاز',   `${r.brand} ${r.model}`],
-                      ['اللون',    r.color],
-                      ['الدولة',   getCountryName(r.country)],
-                      ['المدينة',  r.city],
-                    ].filter(([, v]) => v).map(([k, v]) => (
-                      <div key={k}>
-                        <span className="text-xs text-gray-400 block mb-0.5">{k}</span>
-                        <span className="text-sm font-medium text-gray-900">{v}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {r.reward_offered && (
-                    <div className="flex items-center gap-2 text-green-700 text-xs bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-3">
-                      <Gift className="w-4 h-4 flex-shrink-0" />
-                      <span>مكافأة مقدمة{r.reward_amount ? `: ${r.reward_amount}` : ''}</span>
-                    </div>
-                  )}
-
-                  {r.contact_available && (
-                    <div className="pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500 mb-2">تواصل مع صاحب الجهاز:</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {whatsAppHref(r.whatsapp) && (
-                          <a href={whatsAppHref(r.whatsapp)} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
-                            <Phone className="w-3.5 h-3.5" /> واتساب
-                          </a>
-                        )}
-                        {r.phone && (
-                          <a href={`tel:${r.phone.replace(/\s/g, '')}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                            <Phone className="w-3.5 h-3.5" /> هاتف
-                          </a>
-                        )}
-                        {r.email && (
-                          <a href={`mailto:${r.email}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
-                            <Mail className="w-3.5 h-3.5" /> إيميل
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Footer */}
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-xs text-gray-400 flex items-start gap-1">
-                  <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                  {result.disclaimer_ar}
-                </p>
-                <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
-                  {formatDateTime(result.checked_at)}
-                </span>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {result && !loading && <DeviceResultCard result={result} />}
 
       {/* Report CTA */}
       {!loading && (
@@ -312,8 +368,7 @@ export default function SearchPage() {
             <p className="text-sm font-semibold text-primary-800">هل سُرق جهازك؟</p>
             <p className="text-xs text-primary-600 mt-0.5">أبلغ عنه الآن وساعد المشترين على تجنبه</p>
           </div>
-          <Link to="/reports/new"
-            className="btn-primary py-2 px-4 text-sm flex-shrink-0">
+          <Link to="/reports/new" className="btn-primary py-2 px-4 text-sm flex-shrink-0">
             إبلاغ
           </Link>
         </div>
