@@ -3,20 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- Fallback title & description for crawlers before JS loads.
-       react-helmet-async overrides these per-page at runtime. -->
-  <title>CheckMyDevice — فحص الأجهزة المحمولة قبل الشراء</title>
-  <meta name="description" content="تحقق من هاتفك قبل الشراء — هل الجهاز مسروق أو مفقود؟ أول منصة عربية لفحص IMEI الأجهزة المحمولة في 15 دولة عربية."/>
-  <meta name="keywords" content="فحص IMEI, هاتف مسروق, فحص الجهاز قبل الشراء, CheckMyDevice, هاتف مفقود, تحقق من الجهاز"/>
-  <link rel="canonical" href="https://checkmydevice.online/"/>
-  <!-- Open Graph fallback -->
-  <meta property="og:type"        content="website"/>
-  <meta property="og:site_name"   content="CheckMyDevice"/>
-  <meta property="og:title"       content="CheckMyDevice — فحص الأجهزة المحمولة قبل الشراء"/>
-  <meta property="og:description" content="تحقق من هاتفك قبل الشراء — هل الجهاز مسروق أو مفقود؟ أول منصة عربية لفحص IMEI الأجهزة المحمولة في 15 دولة عربية."/>
-  <meta property="og:url"         content="https://checkmydevice.online/"/>
-  <meta property="og:image"       content="https://checkmydevice.online/android-chrome-512x512.png"/>
-  <meta property="og:locale"      content="ar_EG"/>
+  <!-- SEO meta injected per-page by react-helmet-async.
+       For the homepage, the prerender script injects them directly.
+       No static fallback here to avoid duplicates on sub-pages. -->
 
   <!-- Favicon & App Icons -->
   <!-- 48x48 listed first — Google SERPs requires ≥48×48 for site icon -->
