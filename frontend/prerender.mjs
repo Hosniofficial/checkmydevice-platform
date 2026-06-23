@@ -135,10 +135,27 @@ function startServer() {
 
 // ── Verify required SEO meta tags ─────────────────────────────
 function checkMeta(html, route) {
+  // Check required tags exist
   const missing = REQUIRED_META.filter(regex => !regex.test(html));
   if (missing.length > 0) {
     console.warn(`[SEO] ⚠️  ${route} — missing ${missing.length} required tag(s)`);
   }
+
+  // Check for duplicate meta tags
+  const dupeChecks = [
+    { name: 'description',    pattern: /<meta[^>]+name=["']description["'][^>]*>/gi },
+    { name: 'og:title',       pattern: /<meta[^>]+property=["']og:title["'][^>]*>/gi },
+    { name: 'og:description', pattern: /<meta[^>]+property=["']og:description["'][^>]*>/gi },
+    { name: 'canonical',      pattern: /<link[^>]+rel=["']canonical["'][^>]*>/gi },
+    { name: 'title',          pattern: /<title>[^<]*<\/title>/gi },
+  ];
+
+  dupeChecks.forEach(({ name, pattern }) => {
+    const matches = html.match(pattern) || [];
+    if (matches.length > 1) {
+      console.warn(`[SEO] ⚠️  ${route} — duplicate <${name}> found (${matches.length}x)`);
+    }
+  });
 }
 
 // ── Main ────────────────────────────────────────────────────────
