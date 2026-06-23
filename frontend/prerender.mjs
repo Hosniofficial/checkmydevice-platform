@@ -38,6 +38,7 @@ const ROUTES = [
   '/blog/what-to-do-if-phone-stolen',
   '/blog/what-to-do-if-phone-lost',
   '/blog/how-to-report-stolen-phone',
+  '/_not-found', // rendered as dist/404.html for Vercel
 ];
 
 // Required meta tags — use regex to handle both single and double quotes
@@ -176,7 +177,7 @@ async function main() {
 
       // Pages that call external APIs during build can't reach networkidle
       // or have meaningful DOM content — handle them separately
-      const apiPages = ['/plans'];
+      const apiPages = ['/plans', '/_not-found'];
 
       await page.goto(`http://localhost:${port}${route}`, {
         waitUntil: 'load',
@@ -206,12 +207,17 @@ async function main() {
 
       const html = await page.content();
 
-      // Validate required SEO tags
-      checkMeta(html, route);
+      // Validate required SEO tags (skip 404 page — intentionally minimal)
+      if (route !== '/_not-found') {
+        checkMeta(html, route);
+      }
 
       // Write output
       if (route === '/') {
         writeFileSync(join(DIST, 'index.html'), html, 'utf8');
+      } else if (route === '/_not-found') {
+        // Vercel serves dist/404.html with HTTP 404 status automatically
+        writeFileSync(join(DIST, '404.html'), html, 'utf8');
       } else {
         const dir = join(DIST, route);
         mkdirSync(dir, { recursive: true });
