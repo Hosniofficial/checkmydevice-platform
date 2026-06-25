@@ -14,23 +14,55 @@ import { formatDate, formatDateTime } from '../lib/format.js';
 
 // ── Brand image map ───────────────────────────────────────────────
 const BRAND_IMAGE = {
-  apple:   '/brands/apple.png',
-  iphone:  '/brands/apple.png',
-  samsung: '/brands/samsung.png',
-  huawei:  '/brands/huawei.png',
-  xiaomi:  '/brands/xiaomi.png',
-  oppo:    '/brands/oppo.png',
-  vivo:    '/brands/vivo.png',
-  realme:  '/brands/realme.png',
-  honor:   '/brands/honor.png',
-  infinix: '/brands/infinix.png',
-  nokia:   '/brands/nokia.png',
+  // Apple / iPhone
+  apple:    '/brands/iphone.png',
+  iphone:   '/brands/iphone.png',
+  // Samsung
+  samsung:  '/brands/samsung.png',
+  // Huawei
+  huawei:   '/brands/huawei.png',
+  // Xiaomi
+  xiaomi:   '/brands/xiaomi.png',
+  // Oppo
+  oppo:     '/brands/oppo.png',
+  // Vivo
+  vivo:     '/brands/vivo.png',
+  // Realme
+  realme:   '/brands/realme.png',
+  // Honor
+  honor:    '/brands/honor.png',
+  // Infinix
+  infinix:  '/brands/infinix.png',
+  // Nokia
+  nokia:    '/brands/nokia.png',
+  // OnePlus
+  oneplus:  '/brands/oneplus.png',
+  // Motorola
+  motorola: '/brands/motorola.png',
+  // Sony
+  sony:     '/brands/sony.png',
+  // Google Pixel
+  google:   '/brands/pixel.png',
+  pixel:    '/brands/pixel.png',
+  // Asus / ROG
+  asus:     '/brands/asus.png',
+  rog:      '/brands/asus.png',
+  // Lenovo
+  lenovo:   '/brands/lenovo.png',
+  // Tecno
+  tecno:    '/brands/tecno.png',
+  // Itel
+  itel:     '/brands/itel.png',
+  // Nothing
+  nothing:  '/brands/nothing.png',
+  // Android generic
+  android:  '/brands/android.png',
 };
 
 function getBrandImage(brand) {
-  if (!brand) return '/brands/other.png';
+  if (!brand) return '/brands/android.png';
   const key = brand.toLowerCase().replace(/[^a-z]/g, '');
-  return BRAND_IMAGE[key] || '/brands/other.png';
+  return BRAND_IMAGE[key] || '/brands/android.png';
 }
 
 // ── Status config ─────────────────────────────────────────────────
@@ -41,7 +73,7 @@ const STATUS_CONFIG = {
     border:    'border-emerald-200',
     badgeBg:   'bg-emerald-500',
     icon:      ShieldCheck,
-    label:     'جهاز سليم',
+    label:     'جهاز نظيف',
     desc:      'لا يوجد بلاغ مسروق على هذا الجهاز',
     textColor: 'text-emerald-700',
   },
@@ -139,7 +171,7 @@ function DeviceResultCard({ result }) {
             src={brandImg}
             alt={info?.brand || 'جهاز'}
             className="relative z-10 w-full max-w-[180px] h-[240px] object-contain drop-shadow-xl"
-            onError={e => { e.target.src = '/brands/other.png'; }}
+            onError={e => { e.target.src = '/brands/android.png'; }}
           />
         </div>
 
