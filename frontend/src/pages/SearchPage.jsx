@@ -74,7 +74,7 @@ const STATUS_CONFIG = {
     badgeBg:   'bg-emerald-500',
     icon:      ShieldCheck,
     label:     'جهاز نظيف',
-    desc:      'لا يوجد بلاغ مسروق على هذا الجهاز',
+    desc:      'لا توجد بلاغات مسجلة على هذا الجهاز',
     textColor: 'text-emerald-700',
   },
   stolen: {
