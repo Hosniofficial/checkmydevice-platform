@@ -68,7 +68,7 @@ function getBrandImage(brand) {
 // ── Status config ─────────────────────────────────────────────────
 const STATUS_CONFIG = {
   clean: {
-    gradient:  'from-emerald-600 to-teal-700',
+    gradient:  'from-primary-700 to-blue-800',
     cardBg:    'bg-gradient-to-br from-emerald-50 to-teal-50',
     border:    'border-emerald-200',
     badgeBg:   'bg-emerald-500',
@@ -78,7 +78,7 @@ const STATUS_CONFIG = {
     textColor: 'text-emerald-700',
   },
   stolen: {
-    gradient:  'from-red-600 to-rose-700',
+    gradient:  'from-primary-700 to-blue-800',
     cardBg:    'bg-gradient-to-br from-red-50 to-rose-50',
     border:    'border-red-200',
     badgeBg:   'bg-red-500',
@@ -88,7 +88,7 @@ const STATUS_CONFIG = {
     textColor: 'text-red-700',
   },
   lost: {
-    gradient:  'from-amber-500 to-orange-600',
+    gradient:  'from-primary-700 to-blue-800',
     cardBg:    'bg-gradient-to-br from-amber-50 to-orange-50',
     border:    'border-amber-200',
     badgeBg:   'bg-amber-500',
