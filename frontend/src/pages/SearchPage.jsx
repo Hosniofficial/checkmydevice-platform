@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead.jsx';
 import {
   Search, Info, Phone, Mail,
@@ -293,16 +293,27 @@ function DeviceResultCard({ result }) {
 // ── Main component ────────────────────────────────────────────────
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location                        = useLocation();
   const [query, setQuery]         = useState(searchParams.get('q') || '');
   const [queryType, setQueryType] = useState('imei');
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState(null);
   const [quota, setQuota]         = useState(null);
 
+  // Reset state when user navigates to /search fresh (no ?q param)
+  // location.key changes on every navigation even to the same path
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (!q) {
+      setQuery('');
+      setResult(null);
+    }
+    loadQuota();
+  }, [location.key]);
+
   useEffect(() => {
     const q = searchParams.get('q');
     if (q) { setQuery(q); doSearch(q); }
-    loadQuota();
   }, []);
 
   const loadQuota = async () => {
