@@ -1,15 +1,29 @@
 import { Router }   from 'express';
-import { query }     from '../../db/pool.js';
+import { getClient, query } from '../../db/pool.js';
 import { ok, err, created, getPagination, paginate } from '../../utils/response.js';
 import { authenticate }   from '../../middleware/auth.middleware.js';
 import { auditLog }       from '../../utils/audit.js';
 import { getDeviceFromCache } from '../../services/deviceLookup.service.js';
-import { uploadMiddleware } from '../../services/cloudinary.service.js';
+import { deleteCloudinaryFile, uploadMiddleware } from '../../services/cloudinary.service.js';
 
 const router = Router();
 
 // ── File upload via Cloudinary ────────────────────────────────────
 const upload = uploadMiddleware;
+
+async function cleanupUploadedFiles(files = []) {
+  await Promise.all(files.map(file => deleteCloudinaryFile(file.path)));
+}
+
+async function requireReportOwner(req, res, next) {
+  const result = await query(
+    'SELECT user_id FROM devices_reports WHERE id=$1',
+    [req.params.id]
+  );
+  if (!result.rows.length) return err(res, 'NOT_FOUND', '', '', 404);
+  if (result.rows[0].user_id !== req.user.id) return err(res, 'FORBIDDEN', '', '', 403);
+  next();
+}
 
 // ── GET /reports/device-info/:imei — IMEI auto-fill (no quota consumed) ──
 router.get('/device-info/:imei', authenticate, async (req, res) => {
@@ -86,10 +100,14 @@ router.post('/', authenticate, upload.array('documents', 5), async (req, res) =>
     reward_offered, reward_amount, reward_currency,
   } = req.body;
 
-  if (!brand || !model || !device_type || !report_type || !country_code)
+  if (!brand || !model || !device_type || !report_type || !country_code) {
+    await cleanupUploadedFiles(req.files);
     return err(res, 'MISSING_FIELDS', 'يرجى ملء جميع الحقول الإلزامية');
-  if (!imei && !serial_number)
+  }
+  if (!imei && !serial_number) {
+    await cleanupUploadedFiles(req.files);
     return err(res, 'MISSING_IMEI', 'يجب إدخال رقم IMEI أو الرقم التسلسلي');
+  }
 
   // Check no active report for same IMEI
   if (imei) {
@@ -97,36 +115,59 @@ router.post('/', authenticate, upload.array('documents', 5), async (req, res) =>
       `SELECT id FROM devices_reports WHERE imei=$1 AND status NOT IN ('rejected','cancelled')`,
       [imei]
     );
-    if (existing.rows.length)
+    if (existing.rows.length) {
+      await cleanupUploadedFiles(req.files);
       return err(res, 'IMEI_ALREADY_REPORTED', 'يوجد بلاغ نشط لهذا الجهاز بالفعل');
+    }
   }
 
-  const result = await query(
-    `INSERT INTO devices_reports
-       (user_id,imei,imei2,serial_number,device_type,brand,model,color,storage,
-        report_type,country_code,city,incident_date,description,
-        contact_phone,contact_whatsapp,contact_email,
-        reward_offered,reward_amount,reward_currency)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
-     RETURNING id,status,created_at`,
-    [
-      req.user.id, imei||null, imei2||null, serial_number||null,
-      device_type, brand, model, color||null, storageVal||null,
-      report_type, country_code, city||null, incident_date||null,
-      description||null, contact_phone||null, contact_whatsapp||null,
-      contact_email||null, reward_offered==='true', reward_amount||null, reward_currency||null,
-    ]
-  );
-  const report = result.rows[0];
+  let client;
+  let transactionOpen = false;
+  let report;
+  try {
+    client = await getClient();
+    await client.query('BEGIN');
+    transactionOpen = true;
 
-  // Save uploaded documents — Cloudinary returns file.path as the secure URL
-  if (req.files?.length) {
-    for (const file of req.files) {
-      await query(
+    const result = await client.query(
+      `INSERT INTO devices_reports
+         (user_id,imei,imei2,serial_number,device_type,brand,model,color,storage,
+          report_type,country_code,city,incident_date,description,
+          contact_phone,contact_whatsapp,contact_email,
+          reward_offered,reward_amount,reward_currency)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+       RETURNING id,status,created_at`,
+      [
+        req.user.id, imei||null, imei2||null, serial_number||null,
+        device_type, brand, model, color||null, storageVal||null,
+        report_type, country_code, city||null, incident_date||null,
+        description||null, contact_phone||null, contact_whatsapp||null,
+        contact_email||null, reward_offered==='true', reward_amount||null, reward_currency||null,
+      ]
+    );
+    report = result.rows[0];
+
+    for (const file of (req.files || [])) {
+      await client.query(
         'INSERT INTO report_documents (report_id,doc_type,file_url,file_size,mime_type) VALUES ($1,$2,$3,$4,$5)',
         [report.id, 'box_image', file.path, file.size, file.mimetype]
       );
     }
+
+    await client.query('COMMIT');
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('[Reports] Rollback failed:', rollbackError.message);
+      }
+    }
+    await cleanupUploadedFiles(req.files);
+    throw error;
+  } finally {
+    client?.release();
   }
 
   await auditLog({ userId: req.user.id, action: 'report.created', entityType: 'report', entityId: report.id, ip: req.ip });
@@ -160,18 +201,36 @@ router.patch('/:id/cancel', authenticate, async (req, res) => {
 });
 
 // ── POST /reports/:id/documents ───────────────────────────────────
-router.post('/:id/documents', authenticate, upload.array('documents', 5), async (req, res) => {
-  const result = await query('SELECT user_id FROM devices_reports WHERE id=$1', [req.params.id]);
-  if (!result.rows.length) return err(res, 'NOT_FOUND', '', '', 404);
-  if (result.rows[0].user_id !== req.user.id) return err(res, 'FORBIDDEN', '', '', 403);
+router.post('/:id/documents', authenticate, requireReportOwner, upload.array('documents', 5), async (req, res) => {
 
   const docs = [];
-  for (const file of (req.files || [])) {
-    const r = await query(
-      'INSERT INTO report_documents (report_id,doc_type,file_url,file_size,mime_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
-      [req.params.id, req.body.doc_type||'other', file.path, file.size, file.mimetype]
-    );
-    docs.push(r.rows[0]);
+  let client;
+  let transactionOpen = false;
+  try {
+    client = await getClient();
+    await client.query('BEGIN');
+    transactionOpen = true;
+    for (const file of (req.files || [])) {
+      const result = await client.query(
+        'INSERT INTO report_documents (report_id,doc_type,file_url,file_size,mime_type) VALUES ($1,$2,$3,$4,$5) RETURNING id',
+        [req.params.id, req.body.doc_type||'other', file.path, file.size, file.mimetype]
+      );
+      docs.push(result.rows[0]);
+    }
+    await client.query('COMMIT');
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('[Reports] Rollback failed:', rollbackError.message);
+      }
+    }
+    await cleanupUploadedFiles(req.files);
+    throw error;
+  } finally {
+    client?.release();
   }
   ok(res, { uploaded: docs.length, documents: docs });
 });

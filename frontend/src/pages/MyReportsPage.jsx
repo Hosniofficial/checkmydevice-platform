@@ -28,14 +28,14 @@ export default function MyReportsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">بلاغاتي</h1>
           {data?.meta?.total > 0 && (
             <p className="text-sm text-gray-500 mt-0.5">{data.meta.total} بلاغ</p>
           )}
         </div>
-        <Link to="/reports/new" className="btn-primary flex items-center gap-2 py-2 px-4 text-sm">
+        <Link to="/reports/new" className="btn-primary flex w-full items-center justify-center gap-2 py-2 text-sm sm:w-auto sm:px-4">
           <Plus className="w-4 h-4" /> بلاغ جديد
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function MyReportsPage() {
               const Icon = dt.icon;
               return (
                 <Link key={r.id} to={`/reports/${r.id}`}
-                  className="bg-white rounded-2xl border-2 border-transparent hover:border-primary-200 shadow-sm p-4 flex items-center gap-4 transition-all group">
+                  className="surface-card flex items-center gap-3 p-4 transition-colors group hover:border-primary-300 hover:bg-primary-50/50 sm:gap-4">
 
                   {/* Device icon */}
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${dt.color}`}>

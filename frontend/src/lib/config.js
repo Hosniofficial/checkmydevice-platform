@@ -1,5 +1,5 @@
 // Backend base URL
-// - Development: empty string (Vite proxy handles /uploads → localhost:5000)
+// - Development: empty string (Vite proxies API requests to localhost:5000)
 // - Production:  VITE_API_URL env var set in Vercel dashboard
 export const API_BASE = import.meta.env.VITE_API_URL || '';
 

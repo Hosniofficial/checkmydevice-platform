@@ -208,15 +208,14 @@ export async function sendPasswordResetEmail(email, name, token) {
 }
 
 // ─── Device Searched Alert ────────────────────────────────────────
-// Rate limit: max 1 email per IMEI per 24h to prevent notification spam.
+// Rate limit: max 1 email per report per 24h to prevent notification spam.
 export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo, searcherInfo) {
   // ── Rate limit check ─────────────────────────────────────────
   try {
     const { rows } = await query(
       `SELECT last_search_notified_at FROM devices_reports
-       WHERE imei = $1 AND status = 'approved'
-       ORDER BY approved_at DESC LIMIT 1`,
-      [deviceInfo.imei]
+       WHERE id = $1 AND status = 'approved'`,
+      [deviceInfo.reportId]
     );
     if (rows.length) {
       const last = rows[0].last_search_notified_at;
@@ -226,8 +225,8 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
       // Update timestamp
       await query(
         `UPDATE devices_reports SET last_search_notified_at = NOW()
-         WHERE imei = $1 AND status = 'approved'`,
-        [deviceInfo.imei]
+         WHERE id = $1 AND status = 'approved'`,
+        [deviceInfo.reportId]
       );
     }
   } catch (err) {
@@ -236,7 +235,9 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
   }
 
   const displayName = escapeHtml(ownerName || 'عزيزي المستخدم');
-  const maskedImei  = (deviceInfo.imei || '').replace(/.(?=.{4})/g, '*');
+  const identifierLabel = deviceInfo.identifierType === 'serial' ? 'الرقم التسلسلي' : 'IMEI';
+  const identifier = String(deviceInfo.identifier ?? deviceInfo.imei ?? '');
+  const maskedIdentifier = escapeHtml(identifier.replace(/.(?=.{4})/g, '*'));
   // Use the timestamp passed from the caller (actual search time), not server now
   const searchTime  = searcherInfo?.searchedAt
     ? new Date(searcherInfo.searchedAt).toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' })
@@ -270,8 +271,8 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
         <span class="card-val">${escapeHtml(deviceInfo.brand)} ${escapeHtml(deviceInfo.model)}</span>
       </div>
       <div class="card-row">
-        <span class="card-key">IMEI</span>
-        <span class="card-mono">${maskedImei}</span>
+        <span class="card-key">${identifierLabel}</span>
+        <span class="card-mono">${maskedIdentifier}</span>
       </div>
       <div class="card-row">
         <span class="card-key">وقت البحث</span>

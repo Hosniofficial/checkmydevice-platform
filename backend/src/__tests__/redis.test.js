@@ -3,9 +3,36 @@
  * Graceful degradation tested — all ops return null/false instead of throwing.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import dotenv from 'dotenv';
-dotenv.config();
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+
+const redisStore = new Map();
+const redisClient = {
+  on: jest.fn(),
+  connect: jest.fn(async () => {}),
+  get: jest.fn(async (key) => redisStore.has(key) ? redisStore.get(key) : null),
+  setEx: jest.fn(async (key, _ttl, value) => {
+    redisStore.set(key, value);
+    return 'OK';
+  }),
+  del: jest.fn(async (keys) => {
+    const list = Array.isArray(keys) ? keys : [keys];
+    return list.reduce((count, key) => count + Number(redisStore.delete(key)), 0);
+  }),
+  incr: jest.fn(async (key) => {
+    const count = Number(redisStore.get(key) || 0) + 1;
+    redisStore.set(key, String(count));
+    return count;
+  }),
+  expire: jest.fn(async () => true),
+  ttl: jest.fn(async () => 60),
+  ping: jest.fn(async () => 'PONG'),
+  info: jest.fn(async () => 'total_commands_processed:1\r\n'),
+};
+redisClient.on.mockReturnValue(redisClient);
+
+jest.unstable_mockModule('redis', () => ({
+  createClient: jest.fn(() => redisClient),
+}));
 
 describe('Redis Cache Service', () => {
   let cacheGet, cacheSet, cacheDel, rateLimitIncr, rateLimitGet,
@@ -30,6 +57,7 @@ describe('Redis Cache Service', () => {
   describe('KEY builders', () => {
     it('generates search key', () => {
       expect(KEY.search('352322311421731')).toBe('search:imei:352322311421731');
+      expect(KEY.search('serial-123', 'serial')).toBe('search:serial:serial-123');
     });
     it('generates rate limit IP key', () => {
       expect(KEY.rateIp('192.168.0.1')).toBe('ratelimit:ip:192.168.0.1');

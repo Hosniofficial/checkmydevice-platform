@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Clock, ArrowLeft } from 'lucide-react';
+import { BookOpen, Clock, ArrowLeft, Search } from 'lucide-react';
 import SEOHead from '../../components/SEOHead.jsx';
 
 const ARTICLES = [
@@ -42,43 +42,78 @@ const ARTICLES = [
 ];
 
 export default function BlogIndexPage() {
+  const [featured, ...articles] = ARTICLES;
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
       <SEOHead page="blog" />
 
-      <div className="text-center mb-12">
-        <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <BookOpen className="w-7 h-7 text-primary-700" />
+      <div className="mb-8 rounded-3xl bg-primary-900 px-6 py-7 text-white sm:px-8 sm:py-9">
+        <p className="text-sm font-semibold text-blue-200">معرفة عملية لحماية جهازك</p>
+        <div className="mt-2 flex items-start justify-between gap-5">
+          <div>
+            <h1 className="text-3xl font-bold">المدونة والأدلة</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-blue-100">
+              دليلك للتحقق قبل الشراء والتصرف الصحيح عند فقدان الجهاز أو سرقته.
+            </p>
+          </div>
+          <BookOpen className="hidden h-10 w-10 flex-shrink-0 text-blue-200 sm:block" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">المدونة والأدلة</h1>
-        <p className="text-gray-500 max-w-xl mx-auto">
-          دليلك الكامل لحماية جهازك، التحقق قبل الشراء، والتصرف الصح عند السرقة أو الضياع.
-        </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-5">
-        {ARTICLES.map(article => (
+      <Link to={featured.to}
+        className="surface-card group mb-6 flex flex-col items-start justify-between gap-6 overflow-hidden border-primary-200 p-5 transition-colors hover:border-primary-400 sm:flex-row sm:items-center sm:p-7">
+        <div className="max-w-2xl">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-800">ابدأ من هنا</span>
+            <span className="text-xs text-gray-500">{featured.category}</span>
+            <span className="flex items-center gap-1 text-xs text-gray-500">
+              <Clock className="h-3.5 w-3.5" /> {featured.time} دقائق
+            </span>
+          </div>
+          <h2 className="text-xl font-bold leading-snug text-gray-900 transition-colors group-hover:text-primary-800 sm:text-2xl">
+            {featured.title}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-gray-600">{featured.desc}</p>
+          <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary-800">
+            اقرأ الدليل <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          </span>
+        </div>
+        <div className="hidden h-32 w-40 flex-shrink-0 items-center justify-center rounded-2xl bg-[#f7f6f2] text-primary-700 sm:flex">
+          <BookOpen className="h-12 w-12" strokeWidth={1.5} />
+        </div>
+      </Link>
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-bold text-gray-900">أدلة ومقالات أخرى</h2>
+        <Link to="/search" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-800 hover:underline">
+          <Search className="h-4 w-4" /> افحص جهازاً
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {articles.map(article => (
           <Link
             key={article.to}
             to={article.to}
-            className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+            className="surface-card group flex h-full flex-col p-5 transition-colors hover:border-primary-300 sm:p-6"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-semibold bg-primary-50 text-primary-700 px-2.5 py-1 rounded-full">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-[#f0eee7] px-2.5 py-1 text-xs font-semibold text-gray-700">
                 {article.category}
               </span>
-              <span className="flex items-center gap-1 text-xs text-gray-400">
-                <Clock className="w-3 h-3" /> {article.time} دقائق
+              <span className="flex items-center gap-1 text-xs text-gray-500">
+                <Clock className="h-3.5 w-3.5" /> {article.time} دقائق
               </span>
             </div>
-            <h2 className="font-bold text-gray-900 mb-2 leading-snug group-hover:text-primary-700 transition-colors">
+            <h3 className="mb-2 font-bold leading-snug text-gray-900 transition-colors group-hover:text-primary-800">
               {article.title}
-            </h2>
-            <p className="text-sm text-gray-500 leading-relaxed mb-4">
+            </h3>
+            <p className="mb-5 flex-1 text-sm leading-relaxed text-gray-600">
               {article.desc}
             </p>
-            <span className="flex items-center gap-1 text-sm font-medium text-primary-700">
-              اقرأ المقال <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1 text-sm font-semibold text-primary-800">
+              اقرأ المقال <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
             </span>
           </Link>
         ))}

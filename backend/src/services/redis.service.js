@@ -28,7 +28,7 @@ export const TTL = {
 
 // ─── Key builders ─────────────────────────────────────────────────
 export const KEY = {
-  search:       (imei)   => `search:imei:${imei}`,
+  search:       (value, type = 'imei') => `search:${type}:${value}`,
   rateIp:       (ip)     => `ratelimit:ip:${ip}`,
   rateUser:     (userId) => `ratelimit:user:${userId}`,
   plans:        ()       => `plans:all`,

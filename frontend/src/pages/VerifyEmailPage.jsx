@@ -26,7 +26,7 @@ export default function VerifyEmailPage() {
   }, [token]);
 
   if (status === 'loading') return (
-    <div className="min-h-[80vh] flex items-center justify-center">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
       <div className="text-center">
         <Loader className="w-12 h-12 text-primary-700 animate-spin mx-auto mb-4" />
         <p className="text-gray-500">جاري التحقق من الرابط...</p>
@@ -35,8 +35,8 @@ export default function VerifyEmailPage() {
   );
 
   if (status === 'success') return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
@@ -54,8 +54,8 @@ export default function VerifyEmailPage() {
 
   // Token already used but email IS verified — not an error
   if (status === 'already') return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
@@ -72,8 +72,8 @@ export default function VerifyEmailPage() {
 
   // Genuine error — expired or invalid token
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <XCircle className="w-10 h-10 text-amber-600" />
         </div>

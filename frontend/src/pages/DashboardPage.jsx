@@ -25,7 +25,7 @@ function QuotaCard({ quota }) {
   const barColor  = pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-green-500';
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div className="surface-card p-5">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
           <Search className="w-5 h-5 text-green-600" />
@@ -54,7 +54,7 @@ function QuotaCard({ quota }) {
 // ── Subscription card ─────────────────────────────────────────────
 function SubCard({ sub }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div className="surface-card p-5">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
           <CreditCard className="w-5 h-5 text-purple-600" />
@@ -83,7 +83,7 @@ function SubCard({ sub }) {
 // ── Reports stat card ─────────────────────────────────────────────
 function ReportsStatCard({ total }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div className="surface-card p-5">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
           <FileText className="w-5 h-5 text-blue-600" />
@@ -142,7 +142,7 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-7">
         <Link to="/search"
-          className="bg-white rounded-2xl border-2 border-transparent hover:border-primary-200 shadow-sm p-4 flex items-center gap-4 transition-all group">
+          className="surface-card flex items-center gap-4 p-4 transition-colors group hover:border-primary-300 hover:bg-primary-50">
           <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary-100 transition-colors">
             <Search className="w-5 h-5 text-primary-700" />
           </div>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
         </Link>
 
         <Link to="/reports/new"
-          className="bg-white rounded-2xl border-2 border-transparent hover:border-red-200 shadow-sm p-4 flex items-center gap-4 transition-all group">
+          className="surface-card flex items-center gap-4 p-4 transition-colors group hover:border-red-200 hover:bg-red-50/50">
           <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-red-100 transition-colors">
             <Plus className="w-5 h-5 text-red-600" />
           </div>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent reports */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="surface-card overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900 flex items-center gap-2">
             <FileText className="w-4 h-4 text-gray-400" />
@@ -230,7 +230,7 @@ export default function DashboardPage() {
 
       {/* Upgrade banner — show only on free plan with low quota */}
       {!sub && quota && quota.remaining <= 2 && (
-        <div className="mt-4 bg-gradient-to-l from-primary-700 to-primary-600 rounded-2xl p-5 text-white flex items-center gap-4">
+        <div className="mt-4 flex items-center gap-4 rounded-2xl bg-primary-700 p-5 text-white">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
             <Zap className="w-5 h-5 text-white" />
           </div>

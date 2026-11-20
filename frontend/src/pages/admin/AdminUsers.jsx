@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Search, UserX, UserCheck, CreditCard, Copy,
+  Filter, Search, UserX, UserCheck, CreditCard, Copy,
   ShieldCheck, ShieldAlert, User, Store, Crown, Shield,
-  CheckCircle, Ban, Clock,
+  CheckCircle, Ban, Clock, Users,
 } from 'lucide-react';
 import { Spinner, Pagination, ConfirmDialog } from '../../components/ui/index.jsx';
 import { useAuthStore } from '../../store/auth.store.js';
@@ -157,48 +157,131 @@ export default function AdminUsers() {
       <SEOHead page="admin/users" />
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">إدارة المستخدمين</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {data?.meta?.total ?? '—'} مستخدم — فعّل الاشتراك بعد تأكيد الدفع. الأسعار بالجنيه المصري.
-        </p>
+        <p className="text-sm font-semibold text-accent-500">الإدارة</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">إدارة المستخدمين</h1>
+        <p className="mt-1 text-sm text-gray-500">ابحث عن حساب، راجع حالته، أو حدّث صلاحياته واشتراكه.</p>
+        <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-800">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary-600" />
+          {data?.meta?.total ?? '—'} مستخدم
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap gap-3 items-center">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            className="border border-gray-200 rounded-lg pr-9 pl-4 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            placeholder="بحث بالاسم أو البريد الإلكتروني..."
-            value={q}
-            onChange={e => { setQ(e.target.value); setPage(1); }}
-          />
+      <div className="surface-card space-y-4 p-4 sm:p-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+            <Filter className="h-4 w-4" />
+          </div>
+          بحث وتصفية
         </div>
-
-        {/* Role filter tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-          {[['', 'الكل'], ['user', 'مستخدم'], ['merchant', 'تاجر'], ['admin', 'مشرف']].map(([v, l]) => (
-            <button key={v}
-              onClick={() => { setRoleFilter(v); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-                ${roleFilter === v ? 'bg-white shadow text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}>
-              {l}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative w-full lg:max-w-sm">
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              className="input w-full py-2.5 pr-9 text-sm"
+              placeholder="ابحث بالاسم أو البريد الإلكتروني"
+              aria-label="بحث عن مستخدم"
+              value={q}
+              onChange={e => { setQ(e.target.value); setPage(1); }}
+            />
+          </div>
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-[#f5f3ee] p-1 lg:flex-1">
+            {[['', 'الكل'], ['user', 'مستخدم'], ['merchant', 'تاجر'], ['admin', 'مشرف']].map(([v, l]) => (
+              <button key={v}
+                onClick={() => { setRoleFilter(v); setPage(1); }}
+                aria-pressed={roleFilter === v}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all
+                  ${roleFilter === v ? 'bg-white shadow-sm text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="surface-card overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size={36} /></div>
         ) : !data?.items?.length ? (
-          <div className="text-center py-12 text-gray-400 text-sm">لا توجد نتائج</div>
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7f6f2] text-gray-400">
+              <Users className="h-5 w-5" />
+            </div>
+            <p className="font-semibold text-gray-700">لا يوجد مستخدمون مطابقون</p>
+            <p className="mt-1 text-sm text-gray-500">جرّب البحث باسم أو بريد مختلف.</p>
+          </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs font-medium text-gray-500 border-b border-gray-100">
+            <div className="space-y-3 p-3 sm:p-4 2xl:hidden">
+              {data.items.map(u => (
+                <article key={u.id} className="surface-card space-y-4 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-800">
+                      {(u.full_name || u.email || '?')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-gray-900">{u.full_name || 'بدون اسم'}</p>
+                      <p className="truncate text-xs text-gray-500" dir="ltr">{u.email}</p>
+                      <div className="mt-1"><CopyableId id={u.id} /></div>
+                    </div>
+                    <StatusDot status={u.status} />
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#eeece5] py-3">
+                    {canChangeRole(u) ? (
+                      <label className="flex items-center gap-2 text-xs text-gray-500">
+                        الدور
+                        <select
+                          value={u.role}
+                          disabled={roleChanging === u.id}
+                          onChange={e => changeRole(u.id, e.target.value)}
+                          aria-label={`دور ${u.full_name || u.email}`}
+                          className="rounded-lg border border-[#d8d6d0] bg-white px-2.5 py-1.5 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-60"
+                        >
+                          {ASSIGNABLE_ROLES.map(r => <option key={r} value={r}>{ROLE_CONFIG[r]?.label || r}</option>)}
+                        </select>
+                      </label>
+                    ) : <RoleBadge role={u.role} />}
+                    <span className="rounded-full bg-[#f7f6f2] px-2.5 py-1 text-xs text-gray-600">
+                      {u.plan_name_ar || 'مجاني'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="mb-1 text-gray-500">الدولة</p>
+                      <p className="font-medium text-gray-800">{getCountryName(u.country_code) || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-gray-500">آخر دخول</p>
+                      <p className="font-medium text-gray-800">{u.last_login_at ? formatDate(u.last_login_at) : 'لم يدخل بعد'}</p>
+                    </div>
+                  </div>
+
+                  {!['super_admin', 'admin'].includes(u.role) && (
+                    <div className="flex flex-wrap gap-2 border-t border-[#eeece5] pt-3">
+                      <button onClick={() => setSubDialog({ user: u, plan_type: 'basic', months: 1 })}
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary-50 px-3 py-2 text-xs font-medium text-primary-800 transition-colors hover:bg-primary-100">
+                        <CreditCard className="h-4 w-4" /> تفعيل اشتراك
+                      </button>
+                      <button onClick={() => setConfirm({ user: u })}
+                        className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-colors
+                          ${u.status === 'suspended'
+                            ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                            : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
+                        {u.status === 'suspended'
+                          ? <><UserCheck className="h-4 w-4" /> تفعيل الحساب</>
+                          : <><UserX className="h-4 w-4" /> إيقاف الحساب</>}
+                      </button>
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto 2xl:block">
+              <table className="w-full min-w-[980px] text-sm">
+                <thead className="border-b border-[#e7e4dc] bg-[#f5f3ee] text-xs font-medium text-gray-600">
                   <tr>
                     <th className="px-4 py-3 text-right">المستخدم</th>
                     <th className="px-4 py-3 text-right">الدور</th>
@@ -273,7 +356,7 @@ export default function AdminUsers() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">مجاني</span>
+                          <span className="rounded-full bg-[#f7f6f2] px-2 py-0.5 text-gray-500">مجاني</span>
                         )}
                       </td>
 
@@ -325,7 +408,7 @@ export default function AdminUsers() {
                 </tbody>
               </table>
             </div>
-            <div className="p-4 border-t border-gray-50">
+            <div className="border-t border-[#e7e4dc] p-4">
               <Pagination meta={data.meta} onPage={setPage} />
             </div>
           </>
@@ -347,7 +430,7 @@ export default function AdminUsers() {
       {/* Subscription dialog */}
       {subDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 fade-in">
+          <div className="surface-card fade-in w-full max-w-md p-6 shadow-xl">
             {/* Header */}
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
@@ -355,7 +438,7 @@ export default function AdminUsers() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-gray-900">تفعيل اشتراك</h3>
-                <p className="text-xs text-gray-500 mt-0.5" dir="ltr">{subDialog.user.email}</p>
+                <p className="mt-0.5 break-all text-xs text-gray-500" dir="ltr">{subDialog.user.email}</p>
               </div>
             </div>
 
@@ -389,10 +472,10 @@ export default function AdminUsers() {
               </div>
             </div>
 
-            <div className="flex gap-3 justify-end mt-6">
-              <button onClick={() => setSubDialog(null)} className="btn-outline py-2.5 px-5 text-sm">إلغاء</button>
+            <div className="mt-6 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+              <button onClick={() => setSubDialog(null)} className="btn-outline w-full px-5 py-2.5 text-sm sm:w-auto">إلغاء</button>
               <button onClick={activateSubscription} disabled={subSaving}
-                className="btn-primary py-2.5 px-5 text-sm flex items-center gap-2">
+                className="btn-primary flex w-full items-center justify-center gap-2 px-5 py-2.5 text-sm sm:w-auto">
                 {subSaving
                   ? <><Spinner size={16} /> جاري التفعيل...</>
                   : <><CheckCircle className="w-4 h-4" /> تفعيل الاشتراك</>}

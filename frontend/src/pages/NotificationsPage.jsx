@@ -44,7 +44,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold">الإشعارات</h1>
           {data?.unread_count > 0 && (
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
           )}
         </div>
         {data?.unread_count > 0 && (
-          <button onClick={readAll} className="btn-outline py-2 px-4 text-sm flex items-center gap-2">
+          <button onClick={readAll} className="btn-outline flex w-full items-center justify-center gap-2 py-2 text-sm sm:w-auto sm:px-4">
             <CheckCheck className="w-4 h-4"/> تعليم الكل كمقروء
           </button>
         )}
@@ -70,8 +70,8 @@ export default function NotificationsPage() {
             {data.items.map(n => (
               <div key={n.id}
                 onClick={() => !n.is_read && markRead(n.id)}
-                className={`flex gap-4 p-4 rounded-xl border cursor-pointer transition-colors
-                  ${n.is_read ? 'bg-white border-gray-100' : 'bg-primary-50 border-primary-200'}`}>
+                className={`surface-card flex cursor-pointer gap-4 p-4 transition-colors
+                  ${n.is_read ? 'hover:border-primary-200' : 'border-primary-200 bg-primary-50'}`}>
                 <div className="text-2xl flex-shrink-0 w-10 text-center">
                   {TYPE_ICON[n.type] || '🔔'}
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Search, HelpCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, HelpCircle, X } from 'lucide-react';
 import SEOHead from '../components/SEOHead.jsx';
 
 const FAQS = [
@@ -100,58 +100,84 @@ export default function FAQPage() {
       item.a.toLowerCase().includes(search.toLowerCase())
     ),
   })).filter(cat => cat.items.length > 0);
+  const resultCount = filtered.reduce((count, cat) => count + cat.items.length, 0);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
       <SEOHead page="faq" />
-      <div className="text-center mb-10">
-        <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <HelpCircle className="w-7 h-7 text-white" />
+      <div className="mb-7 rounded-3xl bg-primary-900 px-6 py-7 text-white sm:px-8 sm:py-9">
+        <div className="flex items-start gap-4">
+          <div className="hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
+            <HelpCircle className="h-6 w-6 text-blue-100" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-200">مركز المساعدة</p>
+            <h1 className="mt-1 text-3xl font-bold">الأسئلة الشائعة</h1>
+            <p className="mt-2 text-sm leading-7 text-blue-100">إجابات واضحة حول البحث والإبلاغ والحساب والخصوصية.</p>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">الأسئلة الشائعة</h1>
-        <p className="text-gray-500">إجابات لأكثر الأسئلة شيوعاً</p>
       </div>
 
       {/* Search */}
-      <div className="relative mb-8">
-        <Search className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          className="input pr-12 text-base"
-          placeholder="ابحث في الأسئلة..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      <div className="surface-card mb-8 p-4 sm:p-5">
+        <label htmlFor="faq-search" className="mb-2 block text-sm font-semibold text-gray-800">كيف يمكننا مساعدتك؟</label>
+        <div className="relative">
+          <Search className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            id="faq-search"
+            type="text"
+            aria-label="ابحث في الأسئلة الشائعة"
+            className="input pr-12 text-base"
+            placeholder="اكتب كلمة أو سؤالاً..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch('')} aria-label="مسح البحث"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-[#f0eee7] hover:text-gray-700">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-gray-500">{resultCount} إجابة متاحة</p>
       </div>
 
       {/* FAQs */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>لا توجد نتائج لـ "{search}"</p>
-          <Link to="/contact" className="text-primary-700 hover:underline text-sm mt-2 inline-block">
-            هل لديك سؤال آخر؟ تواصل معنا
+        <div className="surface-card px-5 py-12 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7f6f2] text-gray-400">
+            <HelpCircle className="h-6 w-6" />
+          </div>
+          <p className="font-semibold text-gray-800">لم نعثر على إجابات مطابقة</p>
+          <p className="mt-1 text-sm text-gray-500">جرّب كلمة بحث أخرى أو تواصل مع فريقنا.</p>
+          <Link to="/contact" className="btn-outline mt-4 inline-flex px-4 py-2 text-sm">
+            تواصل معنا
           </Link>
         </div>
       ) : (
         <div className="space-y-8">
-          {filtered.map((cat) => (
+          {filtered.map((cat, catIndex) => (
             <div key={cat.category}>
-              <h2 className="font-bold text-primary-700 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                <span className="w-4 h-4 bg-primary-700 rounded-full inline-block" />
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-primary-900">
+                <span className="inline-block h-5 w-1 rounded-full bg-accent-500" />
                 {cat.category}
+                <span className="rounded-full bg-[#f0eee7] px-2 py-0.5 text-xs font-medium text-gray-500">{cat.items.length}</span>
               </h2>
               <div className="space-y-2">
                 {cat.items.map((item, i) => {
-                  const key  = `${cat.category}-${i}`;
+                  const key  = `${cat.category}-${item.q}`;
+                  const answerId = `faq-answer-${catIndex}-${i}`;
                   const isOpen = open[key];
                   return (
                     <div key={key}
-                      className={`border rounded-2xl overflow-hidden transition-all duration-200 
-                        ${isOpen ? 'border-primary-300 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
+                      className={`surface-card overflow-hidden transition-colors
+                        ${isOpen ? 'border-primary-300' : 'hover:border-gray-300'}`}>
                       <button
+                        type="button"
                         onClick={() => toggle(key)}
-                        className="w-full flex items-center justify-between px-5 py-4 text-right bg-white hover:bg-gray-50 transition-colors"
+                        aria-expanded={Boolean(isOpen)}
+                        aria-controls={answerId}
+                        className="flex min-h-14 w-full items-center justify-between px-5 py-4 text-right transition-colors hover:bg-[#f7f6f2]"
                       >
                         <span className="font-medium text-gray-900 text-sm leading-relaxed pr-3">{item.q}</span>
                         {isOpen
@@ -159,7 +185,7 @@ export default function FAQPage() {
                           : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />}
                       </button>
                       {isOpen && (
-                        <div className="px-5 pb-4 bg-primary-50 border-t border-primary-100">
+                        <div id={answerId} className="border-t border-[#e7e4dc] bg-[#f7f6f2] px-5 pb-4">
                           <p className="text-gray-600 text-sm leading-loose pt-3">{item.a}</p>
                         </div>
                       )}
@@ -173,8 +199,8 @@ export default function FAQPage() {
       )}
 
       {/* Still have questions */}
-      <div className="mt-12 text-center bg-gray-50 rounded-2xl p-8">
-        <HelpCircle className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+      <div className="surface-card mt-12 bg-[#f0eee7] p-6 text-center sm:p-8">
+        <HelpCircle className="mx-auto mb-3 h-10 w-10 text-primary-700" />
         <h3 className="font-bold text-gray-800 mb-2">لم تجد إجابة سؤالك؟</h3>
         <p className="text-gray-500 text-sm mb-5">فريقنا يرد خلال 24-48 ساعة</p>
         <Link to="/contact" className="btn-primary inline-block text-sm py-2 px-6">

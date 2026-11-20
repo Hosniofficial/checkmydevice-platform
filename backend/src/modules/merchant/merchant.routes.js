@@ -2,12 +2,12 @@ import { Router } from 'express';
 import multer       from 'multer';
 import fs           from 'fs';
 import path         from 'path';
-import { query }    from '../../db/pool.js';
+import crypto       from 'crypto';
+import { getClient, query } from '../../db/pool.js';
 import { ok, err, created, getPagination, paginate } from '../../utils/response.js';
 import { authenticate, requireRole, apiKeyAuth } from '../../middleware/auth.middleware.js';
 import { lookupDevice } from '../../services/deviceLookup.service.js';
 import { auditLog }      from '../../utils/audit.js';
-import { v4 as uuidv4 }  from 'uuid';
 
 const router = Router();
 
@@ -29,11 +29,114 @@ const csvUpload = multer({
   },
 });
 
+async function getApiUsage(merchantId) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const month = new Date(today);
+  month.setUTCDate(1);
+
+  const { rows } = await query(
+    `SELECT COUNT(*) FILTER (WHERE created_at >= $2) AS daily,
+            COUNT(*) FILTER (WHERE created_at >= $3) AS monthly
+     FROM merchant_api_usage WHERE merchant_id=$1`,
+    [merchantId, today, month]
+  );
+
+  return {
+    daily: Number(rows[0].daily),
+    monthly: Number(rows[0].monthly),
+  };
+}
+
+async function reserveMerchantApiUsage(merchantId, userId, count, onReserved) {
+  const client = await getClient();
+  let transactionOpen = false;
+
+  try {
+    await client.query('BEGIN');
+    transactionOpen = true;
+
+    const merchant = await client.query(
+      `SELECT daily_limit, monthly_limit FROM merchants
+       WHERE id=$1 AND is_active=TRUE FOR UPDATE`,
+      [merchantId]
+    );
+    if (!merchant.rows.length) {
+      await client.query('ROLLBACK');
+      transactionOpen = false;
+      return { allowed: false, unavailable: true };
+    }
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const month = new Date(today);
+    month.setUTCDate(1);
+    const usage = await client.query(
+      `SELECT COUNT(*) FILTER (WHERE created_at >= $2) AS daily,
+              COUNT(*) FILTER (WHERE created_at >= $3) AS monthly
+       FROM merchant_api_usage WHERE merchant_id=$1`,
+      [merchantId, today, month]
+    );
+    const dailyUsed = Number(usage.rows[0].daily);
+    const monthlyUsed = Number(usage.rows[0].monthly);
+    const { daily_limit: dailyLimit, monthly_limit: monthlyLimit } = merchant.rows[0];
+
+    if (dailyUsed + count > dailyLimit || monthlyUsed + count > monthlyLimit) {
+      await client.query('ROLLBACK');
+      transactionOpen = false;
+      return { allowed: false, unavailable: false };
+    }
+
+    const reservations = await client.query(
+      `INSERT INTO merchant_api_usage (merchant_id, user_id, ordinal)
+       SELECT $1, $2, item.ordinal FROM generate_series(1, $3) AS item(ordinal)
+       RETURNING id, ordinal`,
+      [merchantId, userId, count]
+    );
+    const value = onReserved ? await onReserved(client) : undefined;
+    await client.query('COMMIT');
+    transactionOpen = false;
+    const reservationIds = reservations.rows
+      .sort((a, b) => a.ordinal - b.ordinal)
+      .map(row => row.id);
+    return { allowed: true, value, reservationIds };
+  } catch (error) {
+    if (transactionOpen) await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function recordMerchantApiSearch(userId, imei, ip, result, reservationId) {
+  const client = await getClient();
+  let transactionOpen = false;
+  try {
+    await client.query('BEGIN');
+    transactionOpen = true;
+    const search = await client.query(
+      `INSERT INTO search_logs (user_id,imei,ip_address,result,source)
+       VALUES ($1,$2,$3,$4,'api') RETURNING id`,
+      [userId, imei, ip, result]
+    );
+    const linked = await client.query(
+      'UPDATE merchant_api_usage SET search_log_id=$1 WHERE id=$2',
+      [search.rows[0].id, reservationId]
+    );
+    if (linked.rowCount !== 1) throw new Error('Merchant API usage reservation was not found');
+    await client.query('COMMIT');
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 // ── Helper: generate secure API key ──────────────────────────────
 function generateApiKey() {
-  const segments = [uuidv4().replace(/-/g,'').slice(0,8).toUpperCase(),
-                    uuidv4().replace(/-/g,'').slice(0,8).toUpperCase()];
-  return `CMD-${segments.join('-')}`;
+  return `CMD-${crypto.randomBytes(30).toString('hex')}`;
 }
 
 // ── GET /merchant/profile ────────────────────────────────────────
@@ -71,18 +174,14 @@ router.get('/stats', authenticate, requireRole('merchant','admin','super_admin')
   const merchant = await query('SELECT id, daily_limit, monthly_limit FROM merchants WHERE user_id=$1', [req.user.id]);
   if (!merchant.rows.length) return err(res, 'NOT_MERCHANT', '', '', 404);
 
-  const today = new Date(); today.setHours(0,0,0,0);
-  const month = new Date(); month.setDate(1); month.setHours(0,0,0,0);
-
-  const [daily, monthly, jobs] = await Promise.all([
-    query('SELECT COUNT(*) as cnt FROM search_logs WHERE user_id=$1 AND created_at>=$2 AND source=\'api\'', [req.user.id, today]),
-    query('SELECT COUNT(*) as cnt FROM search_logs WHERE user_id=$1 AND created_at>=$2 AND source=\'api\'', [req.user.id, month]),
+  const [usage, jobs] = await Promise.all([
+    getApiUsage(merchant.rows[0].id),
     query('SELECT COUNT(*) as cnt, COUNT(*) FILTER(WHERE status=\'completed\') as done FROM bulk_search_jobs WHERE merchant_id=$1', [merchant.rows[0].id]),
   ]);
 
   ok(res, {
-    daily_searches:   parseInt(daily.rows[0].cnt),
-    monthly_searches: parseInt(monthly.rows[0].cnt),
+    daily_searches:   usage.daily,
+    monthly_searches: usage.monthly,
     daily_limit:      merchant.rows[0].daily_limit,
     monthly_limit:    merchant.rows[0].monthly_limit,
     bulk_jobs_total:  parseInt(jobs.rows[0].cnt),
@@ -95,10 +194,14 @@ router.post('/bulk-search', authenticate, requireRole('merchant','admin','super_
   if (!req.file) return err(res, 'FILE_REQUIRED', 'يرجى رفع ملف CSV يحتوي على أرقام IMEI');
 
   const merchant = await query('SELECT id FROM merchants WHERE user_id=$1', [req.user.id]);
-  if (!merchant.rows.length) return err(res, 'NOT_MERCHANT', '', '', 404);
+  if (!merchant.rows.length) {
+    await fs.promises.unlink(req.file.path);
+    return err(res, 'NOT_MERCHANT', '', '', 404);
+  }
 
   // Read and parse CSV
-  const content = fs.readFileSync(req.file.path, 'utf-8');
+  const content = await fs.promises.readFile(req.file.path, 'utf-8');
+  await fs.promises.unlink(req.file.path);
   const lines   = content.split('\n').map(l => l.trim()).filter(Boolean);
 
   // Skip header if present
@@ -110,16 +213,27 @@ router.post('/bulk-search', authenticate, requireRole('merchant','admin','super_
   if (imeiList.length > 1000)
     return err(res, 'TOO_MANY', 'الحد الأقصى 1000 جهاز لكل عملية');
 
-  // Create job record
-  const jobResult = await query(
-    `INSERT INTO bulk_search_jobs (merchant_id, file_url, total_count, status)
-     VALUES ($1, $2, $3, 'queued') RETURNING id`,
-    [merchant.rows[0].id, `/uploads/bulk/${req.file.filename}`, imeiList.length]
+  const reservation = await reserveMerchantApiUsage(
+    merchant.rows[0].id,
+    req.user.id,
+    imeiList.length,
+    async (client) => {
+      const job = await client.query(
+        `INSERT INTO bulk_search_jobs (merchant_id, file_url, total_count, status)
+         VALUES ($1, NULL, $2, 'queued') RETURNING id`,
+        [merchant.rows[0].id, imeiList.length]
+      );
+      return job.rows[0].id;
+    }
   );
-  const jobId = jobResult.rows[0].id;
+  if (!reservation.allowed) {
+    if (reservation.unavailable) return err(res, 'NOT_MERCHANT', '', '', 404);
+    return err(res, 'API_QUOTA_EXCEEDED', 'تجاوزت حصة البحث المتاحة لحسابك', '', 429);
+  }
+  const jobId = reservation.value;
 
   // Process in background (non-blocking)
-  processBulkJob(jobId, imeiList, req.user.id).catch(console.error);
+  processBulkJob(jobId, imeiList, req.user.id, reservation.reservationIds).catch(console.error);
 
   created(res, {
     job_id:      jobId,
@@ -131,11 +245,11 @@ router.post('/bulk-search', authenticate, requireRole('merchant','admin','super_
 });
 
 // Background processor
-async function processBulkJob(jobId, imeiList, userId) {
+async function processBulkJob(jobId, imeiList, userId, reservationIds) {
   await query("UPDATE bulk_search_jobs SET status='processing', started_at=NOW() WHERE id=$1", [jobId]);
 
   const results = [];
-  for (const imei of imeiList) {
+  for (const [index, imei] of imeiList.entries()) {
     try {
       // Check reports DB
       const rep = await query(
@@ -158,9 +272,12 @@ async function processBulkJob(jobId, imeiList, userId) {
       });
 
       // Log as API search
-      await query(
-        'INSERT INTO search_logs (user_id,imei,ip_address,result,source) VALUES ($1,$2,$3,$4,$5)',
-        [userId, imei, '127.0.0.1', isReported ? rep.rows[0].report_type : 'clean', 'api']
+      await recordMerchantApiSearch(
+        userId,
+        imei,
+        '127.0.0.1',
+        isReported ? rep.rows[0].report_type : 'clean',
+        reservationIds[index]
       );
 
       await query('UPDATE bulk_search_jobs SET processed_count=processed_count+1 WHERE id=$1', [jobId]);
@@ -185,7 +302,8 @@ router.get('/bulk-search/:jobId', authenticate, requireRole('merchant','admin','
   if (!merchant.rows.length) return err(res, 'NOT_MERCHANT', '', '', 404);
 
   const job = await query(
-    'SELECT * FROM bulk_search_jobs WHERE id=$1 AND merchant_id=$2',
+    `SELECT id, status, total_count, processed_count, created_at, started_at, completed_at
+     FROM bulk_search_jobs WHERE id=$1 AND merchant_id=$2`,
     [req.params.jobId, merchant.rows[0].id]
   );
   if (!job.rows.length) return err(res, 'NOT_FOUND', 'العملية غير موجودة', '', 404);
@@ -218,6 +336,12 @@ router.post('/external/check', apiKeyAuth, async (req, res) => {
   if (!imei) return err(res, 'MISSING_IMEI', 'IMEI is required');
   if (!/^\d{14,16}$/.test(imei)) return err(res, 'INVALID_IMEI', 'Invalid IMEI format');
 
+  const reservation = await reserveMerchantApiUsage(req.merchant.id, req.merchant.user_id, 1);
+  if (!reservation.allowed) {
+    if (reservation.unavailable) return err(res, 'ACCOUNT_UNAVAILABLE', 'حساب التاجر غير متاح', '', 403);
+    return err(res, 'API_QUOTA_EXCEEDED', 'Merchant API quota exceeded', '', 429);
+  }
+
   // Check reports
   const rep = await query(
     `SELECT brand,model,report_type,country_code,approved_at
@@ -230,9 +354,12 @@ router.post('/external/check', apiKeyAuth, async (req, res) => {
   const device = await lookupDevice(imei).catch(() => ({ found: false, data: null }));
 
   // Log usage
-  await query(
-    'INSERT INTO search_logs (user_id,imei,ip_address,result,source) VALUES ($1,$2,$3,$4,$5)',
-    [req.merchant.user_id, imei, req.ip || '0.0.0.0', isReported ? rep.rows[0].report_type : 'clean', 'api']
+  await recordMerchantApiSearch(
+    req.merchant.user_id,
+    imei,
+    req.ip || '0.0.0.0',
+    isReported ? rep.rows[0].report_type : 'clean',
+    reservation.reservationIds[0]
   );
 
   ok(res, {
@@ -252,12 +379,12 @@ router.post('/external/check', apiKeyAuth, async (req, res) => {
 
 // ── GET /api/v1/usage ─────────────────────────────────────────────
 router.get('/external/usage', apiKeyAuth, async (req, res) => {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const month = new Date(); month.setDate(1); month.setHours(0,0,0,0);
+  const today = new Date(); today.setUTCHours(0,0,0,0);
+  const month = new Date(today); month.setUTCDate(1);
 
   const [d, m] = await Promise.all([
-    query('SELECT COUNT(*) as cnt FROM search_logs WHERE user_id=$1 AND source=\'api\' AND created_at>=$2', [req.merchant.user_id, today]),
-    query('SELECT COUNT(*) as cnt FROM search_logs WHERE user_id=$1 AND source=\'api\' AND created_at>=$2', [req.merchant.user_id, month]),
+    query('SELECT COUNT(*) as cnt FROM merchant_api_usage WHERE merchant_id=$1 AND created_at>=$2', [req.merchant.id, today]),
+    query('SELECT COUNT(*) as cnt FROM merchant_api_usage WHERE merchant_id=$1 AND created_at>=$2', [req.merchant.id, month]),
   ]);
 
   ok(res, {

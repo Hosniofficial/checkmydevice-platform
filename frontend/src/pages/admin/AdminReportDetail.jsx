@@ -15,9 +15,9 @@ import { getCountryName } from '../../lib/countries.js';
 import { formatDate, formatDateTime } from '../../lib/format.js';
 
 const DEVICE_TYPE_MAP = {
-  phone:  { label: 'هاتف',    icon: Smartphone, color: 'text-blue-600 bg-blue-50' },
-  laptop: { label: 'لاب توب', icon: Laptop,     color: 'text-violet-600 bg-violet-50' },
-  tablet: { label: 'تابلت',   icon: Tablet,     color: 'text-teal-600 bg-teal-50' },
+  phone:  { label: 'هاتف',    icon: Smartphone, color: 'text-primary-700 bg-primary-50' },
+  laptop: { label: 'لاب توب', icon: Laptop,     color: 'text-primary-700 bg-primary-50' },
+  tablet: { label: 'تابلت',   icon: Tablet,     color: 'text-primary-700 bg-primary-50' },
 };
 
 function InfoRow({ label, value, ltr = false }) {
@@ -35,8 +35,8 @@ function InfoRow({ label, value, ltr = false }) {
 
 function SectionCard({ title, icon: Icon, iconColor = 'text-primary-600', children }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className={`flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 bg-gray-50`}>
+    <div className="surface-card overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-[#e7e4dc] bg-[#f5f3ee] px-5 py-3.5">
         <Icon className={`w-4 h-4 ${iconColor}`} />
         <h2 className="font-semibold text-sm text-gray-700">{title}</h2>
       </div>
@@ -107,7 +107,7 @@ export default function AdminReportDetail() {
       </div>
 
       {/* Title card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="surface-card p-5">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${deviceType.color}`}>
             <DeviceIcon className="w-6 h-6" strokeWidth={1.8} />
@@ -128,7 +128,7 @@ export default function AdminReportDetail() {
 
       {/* Decision buttons */}
       {canDecide && (
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button onClick={() => setDialog({ type: 'approve', note: '' })}
             className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm">
             <CheckCircle className="w-5 h-5" /> قبول البلاغ
@@ -167,7 +167,7 @@ export default function AdminReportDetail() {
 
       {/* Reporter info */}
       <SectionCard title="بيانات المُبلِّغ" icon={User} iconColor="text-blue-600">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoRow label="الاسم الكامل" value={report.full_name} />
           <InfoRow label="البريد الإلكتروني" value={report.email} ltr />
           <InfoRow label="رقم الهاتف" value={report.phone} ltr />
@@ -176,7 +176,7 @@ export default function AdminReportDetail() {
 
       {/* Device info */}
       <SectionCard title="بيانات الجهاز" icon={DeviceIcon} iconColor={deviceType.color.split(' ')[0]}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoRow label="IMEI" value={report.imei} ltr />
           {report.imei2         && <InfoRow label="IMEI 2"           value={report.imei2} ltr />}
           {report.serial_number && <InfoRow label="الرقم التسلسلي"   value={report.serial_number} ltr />}
@@ -190,7 +190,7 @@ export default function AdminReportDetail() {
 
       {/* Incident info */}
       <SectionCard title="تفاصيل الحادثة" icon={MapPin} iconColor="text-orange-500">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoRow label="الدولة"           value={getCountryName(report.country_code)} />
           {report.city         && <InfoRow label="المدينة"          value={report.city} />}
           {report.incident_date && <InfoRow label="تاريخ الحادثة"    value={formatDate(report.incident_date)} />}
@@ -200,7 +200,7 @@ export default function AdminReportDetail() {
         {report.description && (
           <div className="pt-4 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-1.5">الوصف</p>
-            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl px-4 py-3">{report.description}</p>
+            <p className="rounded-xl bg-[#f7f6f2] px-4 py-3 text-sm leading-relaxed text-gray-700">{report.description}</p>
           </div>
         )}
         {report.reward_offered && (
@@ -213,7 +213,7 @@ export default function AdminReportDetail() {
       {/* Contact */}
       {(report.contact_whatsapp || report.contact_email || report.contact_phone) && (
         <SectionCard title="بيانات التواصل" icon={Phone} iconColor="text-green-600">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {report.contact_whatsapp && <InfoRow label="واتساب"              value={report.contact_whatsapp} ltr />}
             {report.contact_phone    && <InfoRow label="هاتف"                value={report.contact_phone} ltr />}
             {report.contact_email    && <InfoRow label="البريد الإلكتروني"   value={report.contact_email} ltr />}
@@ -247,7 +247,7 @@ export default function AdminReportDetail() {
       {/* Decision dialog */}
       {dialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 fade-in">
+          <div className="surface-card fade-in w-full max-w-md p-6 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               {dialog.type === 'approve' && <CheckCircle className="w-7 h-7 text-green-600" />}
               {dialog.type === 'reject'  && <AlertTriangle className="w-7 h-7 text-red-600" />}
@@ -271,7 +271,7 @@ export default function AdminReportDetail() {
             </p>
 
             <textarea
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="input w-full resize-none"
               rows={3}
               placeholder={
                 dialog.type === 'approve' ? 'ملاحظة اختيارية...' :
@@ -283,10 +283,10 @@ export default function AdminReportDetail() {
               autoFocus
             />
 
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setDialog(null)} className="btn-outline flex-1 py-2.5 text-sm">إلغاء</button>
+            <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row">
+              <button onClick={() => setDialog(null)} className="btn-outline w-full py-2.5 text-sm sm:flex-1">إلغاء</button>
               <button onClick={handleDecision} disabled={submitting}
-                className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2
+                className={`w-full rounded-xl py-2.5 text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2 sm:flex-1
                   ${dialog.type === 'approve' ? 'bg-green-600 hover:bg-green-700' :
                     dialog.type === 'delete'  ? 'bg-red-700 hover:bg-red-800'    :
                                                 'bg-red-600 hover:bg-red-700'}`}>

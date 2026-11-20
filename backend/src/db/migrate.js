@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE TABLE IF NOT EXISTS devices_reports (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id          UUID NOT NULL REFERENCES users(id),
-  imei             VARCHAR(16) NOT NULL,
+  imei             VARCHAR(16),
   imei2            VARCHAR(16),
   serial_number    VARCHAR(50),
   device_type      VARCHAR(10) CHECK (device_type IN ('phone','laptop','tablet')),
@@ -107,13 +107,6 @@ CREATE INDEX IF NOT EXISTS idx_device_cache_imei ON device_cache(imei);
 -- Ensure last_search_notified_at exists for email rate limiting
 ALTER TABLE IF EXISTS devices_reports ADD COLUMN IF NOT EXISTS last_search_notified_at TIMESTAMP;
 
--- Fix free plan daily_search_limit: registered users get 20, guests get 5 (enforced in code)
-UPDATE plans SET
-  daily_search_limit  = 20,
-  monthly_search_limit = 600,
-  features = '{"searches":20,"reports":true,"notifications":true,"history":true}'
-WHERE plan_type = 'free';
-
 -- ─── SEARCH_LOGS ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS search_logs (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -150,6 +143,45 @@ CREATE TABLE IF NOT EXISTS merchants (
 CREATE INDEX IF NOT EXISTS idx_merchants_api_key ON merchants(api_key);
 CREATE INDEX IF NOT EXISTS idx_merchants_user    ON merchants(user_id);
 
+-- ─── MERCHANT API USAGE ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS merchant_api_usage (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  merchant_id   UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  ordinal       INTEGER NOT NULL DEFAULT 1,
+  search_log_id UUID UNIQUE REFERENCES search_logs(id) ON DELETE SET NULL,
+  created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+);
+ALTER TABLE IF EXISTS merchant_api_usage
+  ADD COLUMN IF NOT EXISTS ordinal INTEGER NOT NULL DEFAULT 1;
+CREATE INDEX IF NOT EXISTS idx_merchant_usage_period
+  ON merchant_api_usage(merchant_id, created_at);
+
+INSERT INTO merchant_api_usage (merchant_id, user_id, search_log_id, created_at)
+SELECT m.id, sl.user_id, sl.id, sl.created_at
+FROM search_logs sl
+JOIN merchants m ON m.user_id = sl.user_id
+WHERE sl.source = 'api'
+ON CONFLICT (search_log_id) DO NOTHING;
+
+-- ─── BULK SEARCH JOBS ────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS bulk_search_jobs (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  merchant_id     UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  file_url        VARCHAR(500),
+  result_url      VARCHAR(500),
+  total_count     INTEGER NOT NULL,
+  processed_count INTEGER NOT NULL DEFAULT 0,
+  status          VARCHAR(20) NOT NULL DEFAULT 'queued'
+                    CHECK (status IN ('queued','processing','completed','failed')),
+  started_at      TIMESTAMP,
+  completed_at    TIMESTAMP,
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_bulk_jobs_merchant_created
+  ON bulk_search_jobs(merchant_id, created_at DESC);
+ALTER TABLE IF EXISTS bulk_search_jobs ALTER COLUMN file_url DROP NOT NULL;
+
 -- ─── PLANS ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS plans (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -167,6 +199,9 @@ CREATE TABLE IF NOT EXISTS plans (
   is_active            BOOLEAN DEFAULT TRUE,
   created_at           TIMESTAMP DEFAULT NOW()
 );
+
+-- Keep serial-only reports valid without changing existing plan settings.
+ALTER TABLE IF EXISTS devices_reports ALTER COLUMN imei DROP NOT NULL;
 
 -- ─── SUBSCRIPTIONS ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS subscriptions (

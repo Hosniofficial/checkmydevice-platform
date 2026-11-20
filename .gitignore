@@ -16,6 +16,11 @@ build/
 # Uploaded files
 uploads/
 
+# Local database copies and backups
+backend/dev-data/
+*.dump
+*.backup
+
 # Logs
 logs/
 *.log

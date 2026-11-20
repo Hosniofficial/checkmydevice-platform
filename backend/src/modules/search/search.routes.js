@@ -40,6 +40,9 @@ const router = Router();
 router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
   const { query: q, query_type = 'imei' } = req.body;
   if (!q) return err(res, 'MISSING_QUERY', 'أدخل رقم IMEI أو الرقم التسلسلي');
+  if (!['imei', 'serial'].includes(query_type)) {
+    return err(res, 'INVALID_QUERY_TYPE', 'نوع البحث غير صالح');
+  }
 
   const trimmed = q.trim().replace(/\s/g, '');
 
@@ -51,7 +54,7 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
   const userAgent = req.headers['user-agent'] || '';
 
   // ── 1. Check Redis cache for search result ────────────────────
-  const cacheKey = KEY.search(trimmed);
+  const cacheKey = KEY.search(trimmed, query_type);
   const cached   = await cacheGet(cacheKey);
 
   let activeReports = [];
@@ -115,8 +118,8 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
     const ownerResult = await query(
       `SELECT u.email, u.full_name, dr.contact_email
        FROM devices_reports dr JOIN users u ON dr.user_id=u.id
-       WHERE dr.imei=$1 AND dr.status='approved' LIMIT 1`,
-      [trimmed]
+       WHERE dr.id=$1 AND dr.status='approved' LIMIT 1`,
+      [activeReports[0].id]
     );
     if (ownerResult.rows.length) {
       const owner       = ownerResult.rows[0];
@@ -124,7 +127,9 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
       sendDeviceSearchedAlert(notifyEmail, owner.full_name, {
         brand: activeReports[0].brand,
         model: activeReports[0].model,
-        imei:  trimmed,
+        reportId: activeReports[0].id,
+        identifier: trimmed,
+        identifierType: query_type,
       }, {
         country:    req.headers['cf-ipcountry']
                       ? (COUNTRY_NAMES_AR[req.headers['cf-ipcountry']] || req.headers['cf-ipcountry'])
@@ -143,7 +148,7 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
     device_info:   deviceInfo,
     quota:         req.searchLimit,
     cache_hit:     cacheHit,
-    disclaimer_ar: 'ملاحظة: غياب الجهاز من قاعدتنا لا يعني بالضرورة أنه غير مسروق.',
+    disclaimer_ar: 'نتيجة "نظيف" لا تعني 100% أن الجهاز غير مسروق — بل تعني أنه غير مُبلَّغ عنه في قاعدة بياناتنا. استخدمها كمرجع إضافي.',
   };
 
   if (isReported) {

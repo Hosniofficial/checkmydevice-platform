@@ -33,8 +33,8 @@ export default function ForgotPasswordPage() {
   };
 
   if (sent) return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
@@ -44,14 +44,14 @@ export default function ForgotPasswordPage() {
         </p>
         <p className="font-semibold text-primary-700 mb-6 dir-ltr" dir="ltr">{sentEmail}</p>
 
-        <div className="space-y-3 text-xs text-gray-500 bg-gray-50 rounded-xl p-4 text-right mb-6">
+        <div className="mb-6 space-y-3 rounded-xl bg-[#f7f6f2] p-4 text-right text-xs text-gray-500">
           <p className="font-medium text-gray-700">ملاحظات مهمة:</p>
           <p>• الرابط صالح لمدة ساعة واحدة فقط</p>
           <p>• تحقق من مجلد Spam أو Junk إذا لم يصلك</p>
           <p>• يمكنك طلب رابط جديد بعد 5 دقائق</p>
         </div>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Link to="/login" className="btn-primary text-sm py-2 px-5">
             العودة لتسجيل الدخول
           </Link>
@@ -64,11 +64,11 @@ export default function ForgotPasswordPage() {
   );
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <KeyRound className="w-7 h-7 text-white" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
+            <KeyRound className="h-6 w-6 text-primary-700" />
           </div>
           <h1 className="text-2xl font-bold">نسيت كلمة المرور؟</h1>
           <p className="text-gray-500 text-sm mt-2 leading-relaxed">

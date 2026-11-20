@@ -47,28 +47,39 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
       <SEOHead page="contact" />
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">تواصل معنا</h1>
-        <p className="text-gray-500">فريقنا جاهز للمساعدة — نرد خلال 24-48 ساعة</p>
+      <div className="mb-8 rounded-3xl bg-primary-900 px-6 py-7 text-white sm:px-8 sm:py-9">
+        <div className="flex items-start gap-4">
+          <div className="hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
+            <MessageCircle className="h-6 w-6 text-blue-100" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-200">دعم CheckMyDevice</p>
+            <h1 className="mt-1 text-3xl font-bold">تواصل معنا</h1>
+            <p className="mt-2 text-sm leading-7 text-blue-100">فريقنا جاهز للمساعدة — نرد خلال 24-48 ساعة.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-5 gap-8">
+      <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
         {/* Contact info */}
-        <div className="md:col-span-2 space-y-4">
-          <h2 className="font-bold text-gray-900 mb-4">معلومات التواصل</h2>
+        <div className="space-y-4 lg:col-span-2">
+          <div>
+            <h2 className="font-bold text-gray-900">معلومات التواصل</h2>
+            <p className="mt-1 text-xs text-gray-500">اختر الطريقة الأنسب للتواصل مع الفريق.</p>
+          </div>
 
           {CONTACT_ITEMS.map(({ icon: Icon, label, value, href, dir }) => (
-            <div key={label} className="card flex items-start gap-4 p-4">
-              <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Icon className="w-5 h-5 text-primary-700" />
+            <div key={label} className="surface-card flex items-start gap-3 p-4 transition-colors hover:border-primary-200">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50">
+                <Icon className="h-5 w-5 text-primary-700" />
               </div>
-              <div>
-                <div className="text-xs text-gray-400 mb-0.5">{label}</div>
+              <div className="min-w-0">
+                <div className="mb-0.5 text-xs text-gray-500">{label}</div>
                 {href ? (
                   <a href={href} dir={dir}
-                    className="text-sm font-medium text-primary-700 hover:underline break-all">
+                    className="break-all text-sm font-semibold text-primary-800 hover:underline">
                     {value}
                   </a>
                 ) : (
@@ -79,12 +90,12 @@ export default function ContactPage() {
           ))}
 
           {/* Response time */}
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-sm">
-            <div className="flex items-center gap-2 text-green-800 font-medium mb-1">
+          <div className="rounded-2xl border border-[#e7e4dc] bg-[#f7f6f2] p-4 text-sm">
+            <div className="mb-1 flex items-center gap-2 font-semibold text-primary-800">
               <Clock className="w-4 h-4" />
               وقت الاستجابة المعتاد
             </div>
-            <p className="text-green-700 text-xs leading-relaxed">
+            <p className="text-xs leading-relaxed text-gray-600">
               الاستفسارات العامة: خلال 48 ساعة<br/>
               البلاغات الطارئة: خلال 24 ساعة<br/>
               الشراكات التجارية: خلال 5 أيام عمل
@@ -93,9 +104,9 @@ export default function ContactPage() {
         </div>
 
         {/* Contact form */}
-        <div className="md:col-span-3">
+        <div className="lg:col-span-3">
           {sent ? (
-            <div className="card text-center py-12">
+            <div className="surface-card px-6 py-12 text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold mb-2">تم إرسال رسالتك!</h3>
               <p className="text-gray-500 text-sm mb-6">
@@ -106,10 +117,18 @@ export default function ContactPage() {
               </button>
             </div>
           ) : (
-            <div className="card">
-              <h2 className="font-bold text-gray-900 mb-5">أرسل لنا رسالة</h2>
+            <div className="surface-card p-5 sm:p-7">
+              <div className="mb-5 flex items-center gap-3 border-b border-[#e7e4dc] pb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                  <Send className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-gray-900">أرسل لنا رسالة</h2>
+                  <p className="mt-0.5 text-xs text-gray-500">اكتب تفاصيل استفسارك وسنرد عليك خلال 24-48 ساعة.</p>
+                </div>
+              </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Field label="الاسم" error={errors.name?.message} required>
                     <input className={`input ${errors.name ? 'border-red-400' : ''}`}
                       placeholder="اسمك الكامل" {...register('name')} />
@@ -151,9 +170,9 @@ export default function ContactPage() {
       </div>
 
       {/* FAQ hint */}
-      <div className="mt-10 text-center text-sm text-gray-500">
+      <div className="mt-8 rounded-2xl bg-[#f0eee7] px-5 py-4 text-center text-sm text-gray-600">
         قد تجد إجابة سؤالك في{' '}
-        <a href="/faq" className="text-primary-700 hover:underline">صفحة الأسئلة الشائعة</a>
+        <a href="/faq" className="font-semibold text-primary-800 hover:underline">صفحة الأسئلة الشائعة</a>
       </div>
     </div>
   );

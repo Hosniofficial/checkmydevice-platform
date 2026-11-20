@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import SEOHead from '../components/SEOHead.jsx';
 import {
@@ -11,6 +11,7 @@ import { Spinner } from '../components/ui/index.jsx';
 import toast from 'react-hot-toast';
 import { getCountryName } from '../lib/countries.js';
 import { formatDate, formatDateTime } from '../lib/format.js';
+import { IMEI_VALIDATION_MESSAGE, isValidIMEI } from '../lib/validation.js';
 
 // ── Brand image map ───────────────────────────────────────────────
 const BRAND_IMAGE = {
@@ -68,18 +69,16 @@ function getBrandImage(brand) {
 // ── Status config ─────────────────────────────────────────────────
 const STATUS_CONFIG = {
   clean: {
-    gradient:  'from-primary-700 to-blue-800',
-    cardBg:    'bg-gradient-to-br from-emerald-50 to-teal-50',
-    border:    'border-emerald-200',
-    badgeBg:   'bg-emerald-500',
-    icon:      ShieldCheck,
-    label:     'جهاز نظيف',
-    desc:      'لا توجد بلاغات مسجلة على هذا الجهاز',
-    textColor: 'text-emerald-700',
+    cardBg:    'bg-[#f3f6f8]',
+    border:    'border-slate-200',
+    badgeBg:   'bg-primary-700',
+    icon:      Info,
+    label:     'لا توجد بلاغات مسجلة',
+    desc:      'نتيجة "نظيف" لا تعني 100% أن الجهاز غير مسروق — بل تعني أنه غير مُبلَّغ عنه في قاعدة بياناتنا. استخدمها كمرجع إضافي.',
+    textColor: 'text-blue-800',
   },
   stolen: {
-    gradient:  'from-primary-700 to-blue-800',
-    cardBg:    'bg-gradient-to-br from-red-50 to-rose-50',
+    cardBg:    'bg-red-50/70',
     border:    'border-red-200',
     badgeBg:   'bg-red-500',
     icon:      ShieldAlert,
@@ -88,8 +87,7 @@ const STATUS_CONFIG = {
     textColor: 'text-red-700',
   },
   lost: {
-    gradient:  'from-primary-700 to-blue-800',
-    cardBg:    'bg-gradient-to-br from-amber-50 to-orange-50',
+    cardBg:    'bg-amber-50/70',
     border:    'border-amber-200',
     badgeBg:   'bg-amber-500',
     icon:      HelpCircle,
@@ -105,12 +103,12 @@ function QuotaBar({ quota }) {
   const pct      = quota.limit > 0 ? Math.round((quota.used / quota.limit) * 100) : 0;
   const barColor = pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-400' : 'bg-green-500';
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <div className="flex justify-between text-xs text-gray-400 mb-1.5">
+    <div className="mt-4 border-t border-[#e7e4dc] pt-4">
+      <div className="mb-1.5 flex justify-between text-xs text-gray-500">
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> حصة البحث اليوم</span>
         <span>{quota.remaining} متبقٍ من {quota.limit}</span>
       </div>
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden rounded-full bg-[#eeece5]">
         <div className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
@@ -125,97 +123,84 @@ function DeviceResultCard({ result }) {
   const info       = result.device_info;
   const brandImg   = getBrandImage(info?.brand);
 
-  // model_code already contains the full display string e.g. "iPhone 12 Pro Max (A2412)"
-  // fall back to model if model_code is absent
   const modelName = (info?.model      || '').trim();
   const modelCode = (info?.model_code || '').trim();
+  const distinctModelCode = modelCode.toLocaleLowerCase() !== modelName.toLocaleLowerCase()
+    ? modelCode
+    : '';
 
   const DEVICE_LABELS = { phone: 'هاتف', tablet: 'تابلت', laptop: 'لابتوب' };
 
   const specs = [
     { label: 'النوع',        value: DEVICE_LABELS[info?.device_type] || info?.device_type },
     { label: 'الموديل',      value: modelName },
-    { label: 'الكود التقني', value: modelCode, mono: true },
+    { label: 'الكود التقني', value: distinctModelCode, mono: true },
     { label: 'السعة',        value: info?.storage },
     { label: 'الشبكة',       value: info?.network },
-    { label: 'حالة الجهاز',  value: cfg.label, highlight: true },
   ].filter(x => x.value);
 
   return (
-    <div className={`rounded-3xl overflow-hidden shadow-lg border ${cfg.border} fade-in`}>
+    <div className={`surface-card overflow-hidden border ${cfg.border} fade-in`}>
 
-      {/* ── Header bar: brand name + logo ────────────────────── */}
-      <div className={`bg-gradient-to-l ${cfg.gradient} px-5 py-3 flex items-center justify-between`}>
+      <div className="flex items-center justify-between bg-primary-700 px-5 py-3">
         <div className="flex items-center gap-2">
           <StatusIcon className="w-5 h-5 text-white/90" />
           <span className="text-white font-bold text-base">{info?.brand || 'جهاز'}</span>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/20 rounded-xl px-3 py-1.5">
+        <div className="flex items-center gap-1.5 text-white/80">
           <img src="/Logo.png" alt="CheckMyDevice" className="w-4 h-4 object-contain brightness-0 invert" />
-          <span className="text-white text-xs font-semibold">CheckMyDevice</span>
+          <span className="text-xs font-medium">نتيجة الفحص</span>
         </div>
       </div>
 
-      {/* ── Main body: image left, info right ────────────────── */}
-      <div className={`${cfg.cardBg} flex`}>
-
-        {/* Device image */}
-        <div className="relative w-2/5 flex items-end justify-center pt-4 pb-0 overflow-hidden">
-          {/* Watermark */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-            <span className="text-gray-200 font-bold text-xl rotate-[-25deg] opacity-40 whitespace-nowrap">
-              CheckMyDevice
-            </span>
-          </div>
+      <div className={`${cfg.cardBg} grid grid-cols-[32%_1fr] sm:grid-cols-[38%_1fr]`}>
+        <div className="flex min-w-0 items-center justify-center px-2 py-4 sm:px-5">
           <img
             src={brandImg}
             alt={info?.brand || 'جهاز'}
-            className="relative z-10 w-full max-w-[180px] h-[240px] object-contain drop-shadow-xl"
+            className="h-[160px] w-full max-w-[170px] object-contain sm:h-[220px]"
             onError={e => { e.target.src = '/brands/android.png'; }}
+            loading="lazy"
           />
         </div>
 
-        {/* Info panel */}
-        <div className="flex-1 p-5 flex flex-col justify-center gap-3">
-
-          {/* Status badge */}
-          <span className={`inline-flex items-center gap-1.5 self-start ${cfg.badgeBg} text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm`}>
+        <div className="flex min-w-0 flex-col justify-center gap-4 p-4 sm:p-6">
+          <span className={`inline-flex w-fit items-center gap-1.5 ${cfg.badgeBg} rounded-full px-3 py-1.5 text-xs font-bold text-white`}>
             <StatusIcon className="w-3.5 h-3.5" />
             {cfg.label}
           </span>
 
-          {/* Specs table */}
-          <div className="space-y-2">
-            {specs.map(({ label, value, highlight, mono }) => (
-              <div key={label} className="flex items-center justify-between border-b border-gray-200/60 pb-1.5 last:border-0">
-                <span className="text-xs text-gray-500">{label}</span>
-                <span className={`text-sm font-semibold ${highlight ? cfg.textColor : 'text-gray-900'} ${mono ? 'font-mono text-xs tracking-wide bg-white/70 px-2 py-0.5 rounded-lg' : ''}`} dir="ltr">
+          <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
+            {specs.map(({ label, value, mono }) => (
+              <div key={label} className="min-w-0 border-b border-[#dedbd3] pb-2">
+                <span className="block text-xs text-gray-500">{label}</span>
+                <span className={`mt-1 block break-words text-sm font-semibold text-gray-900 ${mono ? 'font-mono text-xs tracking-wide' : ''}`} dir="auto">
                   {value}
                 </span>
               </div>
             ))}
           </div>
 
-          {/* Check timestamp */}
-          <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-gray-300" />
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+            <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
             تم التحقق في {formatDateTime(result.checked_at)}
           </p>
         </div>
       </div>
 
-      {/* ── Status description bar ────────────────────────────── */}
-      <div className={`px-5 py-3 bg-white border-t ${cfg.border} flex items-center gap-2`}>
-        <StatusIcon className={`w-4 h-4 flex-shrink-0 ${cfg.textColor}`} />
-        <p className={`text-sm font-medium ${cfg.textColor}`}>{cfg.desc}</p>
+      <div className={`flex items-start gap-2.5 border-t px-5 py-4 ${cfg.border} ${result.status === 'clean' ? 'bg-white' : cfg.cardBg}`}>
+        <StatusIcon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${cfg.textColor}`} />
+        <p className={`text-sm leading-6 ${cfg.textColor}`}>
+          {result.status === 'clean' ? (result.disclaimer_ar || cfg.desc) : cfg.desc}
+        </p>
       </div>
 
       {/* ── Reports section ───────────────────────────────────── */}
       {result.reports?.length > 0 && (
-        <div className="bg-white px-5 pb-5 pt-3 space-y-3 border-t border-gray-100">
+        <div className="space-y-3 border-t border-[#e7e4dc] bg-white px-5 pb-5 pt-3">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">تفاصيل البلاغ</p>
           {result.reports.map((r, i) => (
-            <div key={i} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <div key={i} className="rounded-2xl border border-[#e7e4dc] bg-[#f7f6f2] p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full
                   ${r.report_type === 'stolen' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -250,7 +235,7 @@ function DeviceResultCard({ result }) {
               )}
 
               {r.contact_available && (
-                <div className="pt-3 border-t border-gray-200">
+                <div className="border-t border-[#e7e4dc] pt-3">
                   <p className="text-xs text-gray-500 mb-2">تواصل مع صاحب الجهاز:</p>
                   <div className="flex gap-2 flex-wrap">
                     {r.whatsapp && (
@@ -279,13 +264,6 @@ function DeviceResultCard({ result }) {
         </div>
       )}
 
-      {/* ── Disclaimer ────────────────────────────────────────── */}
-      <div className="bg-gray-50 px-5 py-3 border-t border-gray-100">
-        <p className="text-xs text-gray-400 flex items-start gap-1.5">
-          <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-          {result.disclaimer_ar}
-        </p>
-      </div>
     </div>
   );
 }
@@ -299,6 +277,8 @@ export default function SearchPage() {
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState(null);
   const [quota, setQuota]         = useState(null);
+  const [validationError, setValidationError] = useState('');
+  const initialSearchRef = useRef(null);
 
   // Reset state when user navigates to /search fresh (no ?q param)
   // location.key changes on every navigation even to the same path
@@ -313,7 +293,11 @@ export default function SearchPage() {
 
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q) { setQuery(q); doSearch(q); }
+    if (q && initialSearchRef.current !== q) {
+      initialSearchRef.current = q;
+      setQuery(q);
+      doSearch(q);
+    }
   }, []);
 
   const loadQuota = async () => {
@@ -324,8 +308,13 @@ export default function SearchPage() {
   };
 
   const doSearch = async (q = query) => {
-    const trimmed = q.trim();
+    const trimmed = q.trim().replace(/\s/g, '');
     if (!trimmed) return;
+    if (queryType === 'imei' && !isValidIMEI(trimmed)) {
+      setValidationError(IMEI_VALIDATION_MESSAGE);
+      return;
+    }
+    setValidationError('');
     setLoading(true);
     setResult(null);
     try {
@@ -340,82 +329,105 @@ export default function SearchPage() {
     }
   };
 
-  const handleSubmit = (e) => { e.preventDefault(); doSearch(); };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    doSearch();
+  };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="min-h-full bg-[#f7f6f2] px-4 py-8 sm:py-12">
       <SEOHead page="search" />
+      <div className="mx-auto max-w-3xl">
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">فحص جهاز</h1>
-        <p className="text-gray-500 text-sm">تحقق من حالة الجهاز قبل الشراء باستخدام رقم IMEI</p>
-      </div>
+        <div className="overflow-hidden rounded-3xl bg-primary-900 px-5 py-7 text-white sm:px-8 sm:py-9">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-blue-200">التحقق قبل الشراء</p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight">راجع حالة الجهاز</h1>
+              <p className="mt-2 max-w-xl text-sm leading-7 text-blue-100">
+                ابحث برقم IMEI أو الرقم التسلسلي، ثم راجع المعلومات والبلاغات المتاحة.
+              </p>
+            </div>
+            <div className="hidden h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
+              <ShieldCheck className="h-7 w-7 text-blue-100" />
+            </div>
+          </div>
+        </div>
 
-      {/* Search card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
-          {[{ v: 'imei', l: 'رقم IMEI' }, { v: 'serial', l: 'الرقم التسلسلي' }].map(({ v, l }) => (
-            <button key={v} type="button" onClick={() => setQueryType(v)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
-                ${queryType === v ? 'bg-white shadow text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}>
-              {l}
+        <div className="relative mx-1 -mt-4 mb-6 rounded-2xl border border-[#e7e4dc] bg-white p-4 shadow-md sm:p-5">
+          <div className="mb-4 flex gap-1 rounded-xl bg-[#f0eee7] p-1">
+            {[{ v: 'imei', l: 'رقم IMEI' }, { v: 'serial', l: 'الرقم التسلسلي' }].map(({ v, l }) => (
+              <button key={v} type="button" onClick={() => { setQueryType(v); setValidationError(''); }}
+                aria-pressed={queryType === v}
+                className={`min-h-10 flex-1 rounded-md px-3 text-sm font-medium transition-colors
+                  ${queryType === v ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative min-w-0 flex-1">
+              <label htmlFor="search-query" className="mb-2 block text-sm font-semibold text-gray-700">
+                {queryType === 'imei' ? 'أدخل رقم IMEI' : 'أدخل الرقم التسلسلي'}
+              </label>
+              <Search className="absolute right-3 top-[42px] h-5 w-5 text-gray-400" aria-hidden="true" />
+              <input
+                id="search-query"
+                type="text" inputMode={queryType === 'imei' ? 'numeric' : 'text'} dir="ltr"
+                aria-invalid={Boolean(validationError)}
+                aria-describedby={validationError ? 'search-validation-error' : undefined}
+                value={query} onChange={e => { setQuery(e.target.value); setValidationError(''); }}
+                placeholder={queryType === 'imei' ? 'أدخل 15 رقماً' : 'أدخل الرقم كما يظهر على الجهاز'}
+                className="input w-full pl-4 pr-10 text-left font-mono text-base tracking-wider"
+                maxLength={queryType === 'imei' ? 16 : 50}
+              />
+            </div>
+            <button type="submit" disabled={loading || !query.trim()}
+              className="btn-primary flex min-h-12 items-center justify-center gap-2 px-6 sm:mt-[30px] sm:flex-shrink-0">
+              {loading ? <Spinner size={20} /> : <Search className="h-5 w-5" />}
+              افحص الرقم
             </button>
-          ))}
+          </form>
+
+          {validationError && (
+            <p id="search-validation-error" role="alert" className="mt-2 text-sm text-red-700">
+              {validationError}
+            </p>
+          )}
+
+          {queryType === 'imei' && (
+            <p className="mt-3 text-xs leading-5 text-gray-500">
+              للحصول على الرقم، اكتب <span className="mx-1 font-mono text-gray-700" dir="ltr">*#06#</span> على الجهاز.
+            </p>
+          )}
+          <QuotaBar quota={quota} />
         </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text" inputMode="numeric" dir="ltr"
-              value={query} onChange={e => setQuery(e.target.value)}
-              placeholder={queryType === 'imei' ? '356938035643809' : 'C39XXXXXXXXXX'}
-              className="input pr-10 font-mono tracking-widest text-base w-full"
-              maxLength={20}
-            />
+        {loading && (
+          <div role="status" className="surface-card py-14 text-center">
+            <Spinner size={40} />
+            <p className="mt-4 text-sm text-gray-600">جاري البحث في قاعدة البيانات...</p>
           </div>
-          <button type="submit" disabled={loading || !query.trim()}
-            className="btn-primary px-6 flex items-center gap-2 flex-shrink-0 disabled:opacity-50">
-            {loading ? <Spinner size={20} /> : <Search className="w-5 h-5" />}
-            فحص
-          </button>
-        </form>
-
-        {queryType === 'imei' && (
-          <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-            💡 اتصل بـ <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">*#06#</span> للحصول على رقم IMEI
-          </p>
         )}
-        <QuotaBar quota={quota} />
+
+        {result && !loading && <DeviceResultCard result={result} />}
+
+        {!loading && (
+          <div className="surface-card mt-6 flex flex-wrap items-center gap-4 p-4 sm:p-5">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-50">
+              <ShieldAlert className="h-5 w-5 text-primary-700" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900">هل سُرق جهازك؟</p>
+              <p className="mt-0.5 text-xs leading-5 text-gray-600">أبلغ عنه لمساعدة الآخرين على التحقق.</p>
+            </div>
+            <Link to="/reports/new" className="btn-outline flex-shrink-0 px-4 py-2 text-sm">
+              إبلاغ
+            </Link>
+          </div>
+        )}
       </div>
-
-      {/* Loading */}
-      {loading && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm text-center py-14">
-          <Spinner size={40} />
-          <p className="text-gray-500 mt-4 text-sm">جاري البحث في قاعدة البيانات...</p>
-        </div>
-      )}
-
-      {/* Result */}
-      {result && !loading && <DeviceResultCard result={result} />}
-
-      {/* Report CTA */}
-      {!loading && (
-        <div className="mt-6 bg-primary-50 border border-primary-100 rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-            <ShieldAlert className="w-5 h-5 text-primary-700" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-primary-800">هل سُرق جهازك؟</p>
-            <p className="text-xs text-primary-600 mt-0.5">أبلغ عنه الآن وساعد المشترين على تجنبه</p>
-          </div>
-          <Link to="/reports/new" className="btn-primary py-2 px-4 text-sm flex-shrink-0">
-            إبلاغ
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

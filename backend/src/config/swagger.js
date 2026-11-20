@@ -89,7 +89,7 @@ const options = {
           required: ['email', 'password'],
           properties: {
             email:    { type: 'string', format: 'email', example: 'admin@checkmydevice.online' },
-            password: { type: 'string', example: 'Admin@123456' },
+            password: { type: 'string', example: 'Use-a-unique-strong-password' },
           },
         },
         LoginResponse: {

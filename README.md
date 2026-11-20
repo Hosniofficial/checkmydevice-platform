@@ -2,11 +2,11 @@
 
 <div align="center">
 
-![CheckMyDevice](frontend/favicon_io/Logo.png)
+![CheckMyDevice](frontend/public/Logo.png)
 
 **أول منصة عربية لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء**
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue)](https://postgresql.org)
 [![Redis](https://img.shields.io/badge/Redis-7+-red)](https://redis.io)
@@ -34,7 +34,7 @@ CheckMyDevice منصة ويب تتيح للمستخدمين:
 - **Redis** — Caching & Rate Limiting
 - **JWT** — Authentication (Access + Refresh tokens)
 - **Multer** — رفع الملفات
-- **Nodemailer** — إرسال الإيميلات
+- **Resend** — إرسال الإيميلات
 - **Sentry** — Error Monitoring
 
 ### Frontend
@@ -51,7 +51,7 @@ CheckMyDevice منصة ويب تتيح للمستخدمين:
 ## 🚀 تشغيل المشروع محلياً
 
 ### المتطلبات
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL 15+
 - Redis 7+
 
@@ -90,10 +90,23 @@ npm run dev
 # يعمل على http://localhost:3000
 ```
 
+لتشغيل اختبارات الواجهة الآلية:
+```bash
+npm run test:e2e
+```
+
 ### أو باستخدام Docker
 ```bash
+cd ..
+cp .env.example .env
+# عدّل جميع القيم في .env قبل التشغيل
+docker-compose up -d postgres redis
+docker-compose run --rm backend node src/db/migrate.js
+docker-compose run --rm backend node src/db/seed.js
 docker-compose up -d
 ```
+
+شغّل الترحيلات يدويًا على نسخة تطوير أو staging بعد أخذ نسخة احتياطية؛ لا تُشغّلها تلقائيًا عند بدء خدمة الإنتاج.
 
 ---
 
@@ -141,9 +154,12 @@ checkmydevice/
 | `JWT_SECRET` | مفتاح JWT (يجب أن يكون عشوائياً وطويلاً) |
 | `JWT_REFRESH_SECRET` | مفتاح Refresh Token |
 | `REDIS_URL` | رابط اتصال Redis |
-| `SMTP_*` | إعدادات البريد الإلكتروني |
+| `RESEND_API_KEY` | مفتاح Resend لإرسال البريد الإلكتروني |
 | `IMEICHECK_API_KEY` | مفتاح API لخدمة فحص IMEI |
+| `CLOUDINARY_*` | إعدادات رفع صور البلاغات |
 | `SENTRY_DSN` | مفتاح Sentry لمراقبة الأخطاء |
+
+تتطلب عملية `db:seed` أيضًا ضبط `ADMIN_EMAIL` و`ADMIN_PASSWORD` لإنشاء حساب المدير الأول.
 
 ---
 

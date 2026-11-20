@@ -5,44 +5,74 @@ import SEOHead from '../components/SEOHead.jsx';
 
 const LAST_UPDATED = '15 يونيو 2026';
 
-const Section = ({ num, title, children }) => (
-  <div className="mb-8">
-    <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-      <span className="w-8 h-8 bg-primary-700 text-white rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0">
+const SECTIONS = [
+  ['terms-acceptance', 'قبول الشروط'],
+  ['terms-service', 'وصف الخدمة'],
+  ['terms-disclaimer', 'إخلاء المسؤولية'],
+  ['terms-obligations', 'التزامات المستخدم'],
+  ['terms-reports', 'البلاغات والمحتوى'],
+  ['terms-intellectual-property', 'الملكية الفكرية'],
+  ['terms-account', 'الحسابات والأمان'],
+  ['terms-pricing', 'الأسعار والاشتراكات'],
+  ['terms-law', 'القانون المطبق'],
+  ['terms-contact', 'التواصل والشكاوى'],
+];
+
+const Section = ({ id, num, title, children }) => (
+  <section id={id} className="mb-7 scroll-mt-24 border-b border-[#eeece5] pb-6 last:mb-0 last:border-0 last:pb-0">
+    <h2 className="mb-3 flex items-center gap-3 text-lg font-bold text-gray-900">
+      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 text-xs font-bold text-primary-800">
         {num}
       </span>
       {title}
     </h2>
-    <div className="text-gray-600 leading-loose text-sm space-y-3 mr-10">
+    <div className="mr-1 space-y-3 text-sm leading-loose text-gray-600 sm:mr-11">
       {children}
     </div>
-  </div>
+  </section>
 );
 
 export default function TermsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <SEOHead page="terms" />
       {/* Header */}
-      <div className="text-center mb-10">
-        <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-7 h-7 text-white" />
+      <div className="surface-card mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+            <FileText className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-accent-500">معلومات قانونية</p>
+            <h1 className="mt-1 text-2xl font-bold text-primary-900 sm:text-3xl">شروط الاستخدام</h1>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">شروط الاستخدام</h1>
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-          <Calendar className="w-4 h-4" />
+        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#f0eee7] px-3 py-2 text-xs text-gray-600">
+          <Calendar className="h-4 w-4 text-primary-700" />
           <span>آخر تحديث: {LAST_UPDATED}</span>
         </div>
       </div>
 
-      {/* Alert */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 text-sm text-amber-800 leading-relaxed">
-        <strong>تنبيه مهم:</strong> باستخدامك لمنصة CheckMyDevice، فأنت توافق على هذه الشروط.
-        إذا لم توافق على أي منها، يرجى التوقف عن استخدام المنصة.
-      </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav aria-label="أقسام شروط الاستخدام" className="surface-card h-fit p-4 lg:sticky lg:top-24">
+          <h2 className="mb-3 text-sm font-bold text-gray-800">في هذه الصفحة</h2>
+          <div className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+            {SECTIONS.map(([id, title], index) => (
+              <a key={id} href={`#${id}`} className="whitespace-nowrap rounded-lg px-3 py-2 text-xs text-gray-600 transition-colors hover:bg-[#f7f6f2] hover:text-primary-800">
+                <span className="ml-1.5 text-primary-700">{index + 1}.</span>{title}
+              </a>
+            ))}
+          </div>
+        </nav>
 
-      <div className="card">
-        <Section num="١" title="قبول الشروط">
+        <div className="min-w-0">
+          <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900">
+            <strong>تنبيه مهم:</strong> باستخدامك لمنصة CheckMyDevice، فأنت توافق على هذه الشروط.
+            إذا لم توافق على أي منها، يرجى التوقف عن استخدام المنصة.
+          </div>
+
+          <article className="surface-card p-5 sm:p-8">
+        <Section id="terms-acceptance" num="١" title="قبول الشروط">
           <p>
             باستخدام منصة CheckMyDevice (الموقع أو التطبيق)، تقر بأنك قرأت هذه الشروط وفهمتها
             وتوافق على الالتزام بها وبسياسة الخصوصية المرتبطة.
@@ -52,7 +82,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section num="٢" title="وصف الخدمة">
+        <Section id="terms-service" num="٢" title="وصف الخدمة">
           <p>
             CheckMyDevice هي منصة معلوماتية تُتيح للمستخدمين:
           </p>
@@ -64,7 +94,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section num="٣" title="إخلاء المسؤولية">
+        <Section id="terms-disclaimer" num="٣" title="إخلاء المسؤولية">
           <p className="font-medium text-red-700">يرجى قراءة هذا البند بعناية:</p>
           <p>
             • <strong>قاعدة البيانات غير شاملة:</strong> غياب الجهاز من قاعدتنا لا يعني بالضرورة
@@ -83,7 +113,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section num="٤" title="التزامات المستخدم">
+        <Section id="terms-obligations" num="٤" title="التزامات المستخدم">
           <p>بالتسجيل في المنصة، تلتزم بما يلي:</p>
           <p>• تقديم معلومات صحيحة ودقيقة عند التسجيل وعند رفع البلاغات.</p>
           <p>• عدم رفع بلاغات كاذبة أو مزيفة بهدف الإضرار بأشخاص أو تجار.</p>
@@ -93,7 +123,7 @@ export default function TermsPage() {
           <p>• عدم استخدام bots أو أدوات آلية لاستنزاف الخدمة.</p>
         </Section>
 
-        <Section num="٥" title="البلاغات والمحتوى">
+        <Section id="terms-reports" num="٥" title="البلاغات والمحتوى">
           <p>
             • كل بلاغ يخضع للمراجعة اليدوية من فريق الإدارة قبل نشره.
           </p>
@@ -108,7 +138,7 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section num="٦" title="الملكية الفكرية">
+        <Section id="terms-intellectual-property" num="٦" title="الملكية الفكرية">
           <p>
             جميع محتويات المنصة (الشعار، التصميم، الكود، قاعدة البيانات) هي ملك حصري
             لـ CheckMyDevice ومحمية بموجب قوانين الملكية الفكرية.
@@ -118,32 +148,34 @@ export default function TermsPage() {
           </p>
         </Section>
 
-        <Section num="٧" title="الحسابات والأمان">
+        <Section id="terms-account" num="٧" title="الحسابات والأمان">
           <p>• أنت مسؤول عن سرية بيانات حسابك وكلمة مرورك.</p>
           <p>• أبلغنا فوراً عن أي اختراق أو استخدام غير مصرح به لحسابك.</p>
           <p>• نحتفظ بحق تعليق أو حذف أي حساب يخالف هذه الشروط.</p>
         </Section>
 
-        <Section num="٨" title="الأسعار والاشتراكات">
+        <Section id="terms-pricing" num="٨" title="الأسعار والاشتراكات">
           <p>• الاشتراك المجاني متاح للجميع بحدود استخدام يومية.</p>
           <p>• الخطط المدفوعة يمكن إلغاؤها في أي وقت مع احتفاظك بالمميزات حتى نهاية الفترة المدفوعة.</p>
           <p>• لا نُقدّم استردادًا للمبالغ إلا في حالات استثنائية موثقة.</p>
           <p>• نحتفظ بحق تعديل الأسعار مع إشعار مسبق 30 يوماً.</p>
         </Section>
 
-        <Section num="٩" title="القانون المطبق والاختصاص القضائي">
+        <Section id="terms-law" num="٩" title="القانون المطبق والاختصاص القضائي">
           <p>
             تخضع هذه الشروط لقوانين جمهورية مصر العربية. أي نزاع ينشأ عن استخدام
             المنصة يُحسم أمام المحاكم المصرية المختصة.
           </p>
         </Section>
 
-        <Section num="١٠" title="التواصل والشكاوى">
+        <Section id="terms-contact" num="١٠" title="التواصل والشكاوى">
           <p>
             للتواصل معنا بشأن التسجيل: <a href="mailto:support@checkmydevice.online" className="text-primary-700 hover:underline" dir="ltr">support@checkmydevice.online</a>
           </p>
           <p>نلتزم بالرد خلال 5 أيام عمل.</p>
         </Section>
+          </article>
+        </div>
       </div>
 
       <div className="mt-6 text-center text-xs text-gray-400 space-x-4 space-x-reverse">

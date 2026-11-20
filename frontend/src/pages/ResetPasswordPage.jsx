@@ -53,8 +53,8 @@ export default function ResetPasswordPage() {
 
   // ── Invalid / expired token ───────────────────────────────────
   if (!tokenValid) return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <XCircle className="w-10 h-10 text-red-600" />
         </div>
@@ -77,8 +77,8 @@ export default function ResetPasswordPage() {
 
   // ── Done ──────────────────────────────────────────────────────
   if (done) return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center py-10">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-md px-5 py-10 text-center sm:px-8">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
@@ -95,11 +95,11 @@ export default function ResetPasswordPage() {
   );
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
+    <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <KeyRound className="w-7 h-7 text-white" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-50">
+            <KeyRound className="h-6 w-6 text-primary-700" />
           </div>
           <h1 className="text-2xl font-bold">تعيين كلمة مرور جديدة</h1>
           <p className="text-gray-500 text-sm mt-1">اختر كلمة مرور قوية لحماية حسابك</p>

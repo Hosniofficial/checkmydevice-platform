@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Shield, User, FileText, ChevronDown, ChevronUp,
-  Filter, Search, Clock, Trash2, CheckCircle,
+  Filter, Search, Clock, Trash2, CheckCircle, ClipboardList,
   XCircle, LogIn, Key, RefreshCw, CreditCard, UserCog,
 } from 'lucide-react';
 import { Spinner, Pagination } from '../../components/ui/index.jsx';
@@ -68,13 +68,13 @@ function JsonDiff({ oldData, newData }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs" dir="ltr">
       <div>
         <div className="text-gray-400 mb-1.5 font-medium text-right" dir="rtl">قبل التغيير</div>
-        <pre className="bg-gray-50 rounded-xl p-3 overflow-auto max-h-40 text-gray-600 border border-gray-100 leading-relaxed">
+        <pre className="max-h-40 overflow-auto rounded-xl border border-[#e7e4dc] bg-[#f7f6f2] p-3 leading-relaxed text-gray-600">
           {oldData ? JSON.stringify(oldData, null, 2) : 'null'}
         </pre>
       </div>
       <div>
         <div className="text-gray-400 mb-1.5 font-medium text-right" dir="rtl">بعد التغيير</div>
-        <pre className="bg-gray-50 rounded-xl p-3 overflow-auto max-h-40 text-gray-700 border border-gray-100 leading-relaxed">
+        <pre className="max-h-40 overflow-auto rounded-xl border border-[#e7e4dc] bg-[#f7f6f2] p-3 leading-relaxed text-gray-700">
           {newData ? JSON.stringify(newData, null, 2) : 'null'}
         </pre>
       </div>
@@ -121,56 +121,103 @@ export default function AdminAuditLogs() {
       <SEOHead page="admin/audit-logs" />
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">سجل الأحداث</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          جميع الإجراءات الإدارية مسجّلة تلقائياً — اضغط على أي سطر لعرض تفاصيل التغيير.
+        <p className="text-sm font-semibold text-accent-500">الإدارة</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">سجل الأحداث</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          تابع التغييرات التي تمت على الحسابات والبلاغات والاشتراكات.
         </p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-wrap gap-3 items-center">
-        <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
-
-        {/* Action search */}
-        <div className="relative">
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            className="border border-gray-200 rounded-lg pr-9 pl-4 py-2 text-sm w-52 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            placeholder="بحث في الإجراء..."
-            value={actionQ}
-            onChange={e => setActionQ(e.target.value)}
-          />
+      <div className="surface-card space-y-4 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+              <Filter className="h-4 w-4" />
+            </div>
+            تصفية السجل
+          </div>
+          <span className="rounded-full bg-[#f0eee7] px-3 py-1.5 text-xs text-gray-600">
+            {data?.meta?.total ?? '—'} حدث
+          </span>
         </div>
-
-        {/* Entity type tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-          {ENTITY_TYPES.map(t => (
-            <button key={t.value}
-              onClick={() => { setEntityType(t.value); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-                ${entityType === t.value ? 'bg-white shadow text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}>
-              {t.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative w-full lg:max-w-xs">
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              aria-label="بحث في الإجراءات"
+              className="input w-full py-2.5 pr-9 text-sm"
+              placeholder="ابحث باسم الإجراء..."
+              value={actionQ}
+              onChange={e => setActionQ(e.target.value)}
+            />
+          </div>
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-[#f5f3ee] p-1 lg:flex-1">
+            {ENTITY_TYPES.map(t => (
+              <button key={t.value}
+                onClick={() => { setEntityType(t.value); setPage(1); }}
+                aria-pressed={entityType === t.value}
+                className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all
+                  ${entityType === t.value ? 'bg-white shadow-sm text-primary-700' : 'text-gray-500 hover:text-gray-700'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
-
-        <span className="text-xs text-gray-400 mr-auto">
-          {data?.meta?.total ?? '—'} حدث
-        </span>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="surface-card overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size={36} /></div>
         ) : !data?.items?.length ? (
-          <div className="text-center py-16 text-gray-400 text-sm">لا توجد نتائج</div>
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f7f6f2] text-gray-400">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+            <p className="font-semibold text-gray-700">لا توجد أحداث مطابقة</p>
+            <p className="mt-1 text-sm text-gray-500">ستظهر الإجراءات المسجلة هنا عند توفرها.</p>
+          </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs font-medium text-gray-500 border-b border-gray-100">
+            <div className="space-y-3 p-3 sm:p-4 2xl:hidden">
+              {data.items.map(row => (
+                <article key={row.id} className="surface-card overflow-hidden">
+                  <button
+                    type="button"
+                    aria-expanded={expanded === row.id}
+                    onClick={() => setExpanded(prev => prev === row.id ? null : row.id)}
+                    className="w-full space-y-3 p-4 text-right transition-colors hover:bg-[#f7f6f2]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-2">
+                        <ActionBadge action={row.action} />
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <EntityIcon type={row.entity_type} />
+                          {ENTITY_LABELS[row.entity_type] || row.entity_type || '—'}
+                        </div>
+                      </div>
+                      <span className="whitespace-nowrap text-xs text-gray-500">{formatDateTime(row.created_at)}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#eeece5] pt-3 text-xs">
+                      <span className="truncate text-gray-700" dir="ltr">{row.user_email || 'نظام'}</span>
+                      <span className="rounded-lg bg-[#f5f3ee] px-2 py-1 font-mono text-gray-600">
+                        {formatIp(row.ip_address)}
+                      </span>
+                    </div>
+                  </button>
+                  {expanded === row.id && (
+                    <div className="border-t border-[#e7e4dc] bg-[#f7f6f2] p-4">
+                      <JsonDiff oldData={row.old_data} newData={row.new_data} />
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto 2xl:block">
+              <table className="w-full min-w-[980px] text-sm">
+                <thead className="border-b border-[#e7e4dc] bg-[#f5f3ee] text-xs font-medium text-gray-600">
                   <tr>
                     <th className="px-4 py-3 w-10" />
                     <th className="px-4 py-3 text-right">المستخدم</th>
@@ -185,7 +232,7 @@ export default function AdminAuditLogs() {
                     <React.Fragment key={row.id}>
                       {/* Main row */}
                       <tr
-                        className="hover:bg-gray-50/80 transition-colors cursor-pointer group"
+                        className="group cursor-pointer transition-colors hover:bg-[#f7f6f2]"
                         onClick={() => setExpanded(prev => prev === row.id ? null : row.id)}
                       >
                         {/* Expand toggle */}
@@ -237,7 +284,7 @@ export default function AdminAuditLogs() {
                       {/* Expanded detail row */}
                       {expanded === row.id && (
                         <tr>
-                          <td colSpan={6} className="px-6 py-4 bg-gray-50/60 border-b border-gray-100">
+                          <td colSpan={6} className="border-b border-[#e7e4dc] bg-[#f7f6f2] px-6 py-4">
                             <JsonDiff oldData={row.old_data} newData={row.new_data} />
                           </td>
                         </tr>
@@ -248,7 +295,7 @@ export default function AdminAuditLogs() {
               </table>
             </div>
 
-            <div className="p-4 border-t border-gray-50">
+            <div className="border-t border-[#e7e4dc] p-4">
               <Pagination meta={data.meta} onPage={p => { setPage(p); setExpanded(null); }} />
             </div>
           </>

@@ -3,11 +3,10 @@ import { Link } from 'react-router-dom';
 import { Target, Users, Globe, CheckCircle, Heart, Zap, Lock, Shield } from 'lucide-react';
 import SEOHead from '../components/SEOHead.jsx';
 
-const STATS = [
-  { value: '50,000+', label: 'جهاز مسجل' },
-  { value: '15',      label: 'دولة عربية' },
-  { value: '100%',    label: 'مراجعة يدوية' },
-  { value: '24/7',    label: 'خدمة متواصلة' },
+const SERVICE_DETAILS = [
+  { title: 'معلومات الجهاز', description: 'تظهر تفاصيل الطراز عند توفرها.' },
+  { title: 'البلاغات المتاحة', description: 'راجع البلاغات المسجلة على المنصة.' },
+  { title: 'النتيجة', description: 'مؤشر إضافي لا يغني عن فحص الجهاز.' },
 ];
 
 const VALUES = [
@@ -18,36 +17,44 @@ const VALUES = [
 ];
 
 const TEAM = [
-  { name: 'فريق التطوير',  role: 'Backend & Frontend',  emoji: '💻' },
-  { name: 'فريق المراجعة', role: 'مراجعة البلاغات يدوياً', emoji: '🔍' },
-  { name: 'فريق الدعم',    role: 'دعم المستخدمين',        emoji: '🎧' },
-  { name: 'فريق الأمان',   role: 'حماية البيانات',         emoji: '🔒' },
+  { name: 'فريق التطوير',  role: 'تطوير المنصة',       icon: Zap },
+  { name: 'فريق المراجعة', role: 'مراجعة البلاغات',     icon: CheckCircle },
+  { name: 'فريق الدعم',    role: 'مساندة المستخدمين',   icon: Users },
+  { name: 'فريق الأمان',   role: 'حماية البيانات',       icon: Lock },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="bg-white">
+    <div>
       <SEOHead page="about" />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-bl from-primary-700 to-blue-900 text-white py-20 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <img src="/Logo.png" alt="CheckMyDevice" className="w-14 h-14 object-contain rounded-2xl mx-auto mb-6" />
-          <h1 className="text-4xl font-bold mb-4">من نحن</h1>
-          <p className="text-blue-200 text-lg leading-relaxed max-w-xl mx-auto">
-            CheckMyDevice هي منصة عربية رائدة لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء،
-            نحمي المشترين ونساعد أصحاب الأجهزة المسروقة على استردادها.
-          </p>
+      <section className="border-b border-[#e7e4dc] bg-[#f5f3ee] px-4 py-14 sm:py-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 md:grid-cols-2">
+          <div>
+            <p className="text-sm font-semibold text-accent-500">عن المنصة</p>
+            <h1 className="mt-2 text-4xl font-bold text-primary-900">من نحن</h1>
+            <p className="mt-4 max-w-xl text-base leading-8 text-gray-600">
+              CheckMyDevice منصة عربية تساعد على مراجعة معلومات الأجهزة والبلاغات المتاحة قبل الشراء.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 border-s-2 border-accent-500 ps-5">
+            <img src="/Logo.png" alt="" className="h-12 w-12 object-contain" />
+            <p className="max-w-md text-sm leading-7 text-gray-600">
+              نهدف إلى تسهيل الوصول إلى المعلومات المتاحة، مع التذكير بأن غياب البلاغ لا يثبت سلامة الجهاز.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-b border-gray-100 py-10 px-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {STATS.map(({ value, label }) => (
-            <div key={label}>
-              <div className="text-3xl font-bold text-primary-700 mb-1">{value}</div>
-              <div className="text-sm text-gray-500">{label}</div>
+      <section className="border-b border-gray-200 bg-white px-4 py-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 divide-y divide-gray-200 sm:grid-cols-3 sm:divide-y-0 sm:divide-x sm:divide-x-reverse">
+          {SERVICE_DETAILS.map(({ title, description }, index) => (
+            <div key={title} className="py-4 sm:px-6 sm:first:ps-0 sm:last:pe-0">
+              <p className="text-xs font-semibold tracking-widest text-accent-500" dir="ltr">
+                0{index + 1}
+              </p>
+              <h2 className="mt-2 text-sm font-bold text-gray-800">{title}</h2>
+              <p className="mt-1 text-sm leading-6 text-gray-500">{description}</p>
             </div>
           ))}
         </div>
@@ -90,7 +97,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-gray-50 py-16 px-4">
+      <section className="bg-[#f5f3ee] px-4 py-14 sm:py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">قيمنا</h2>
@@ -98,7 +105,7 @@ export default function AboutPage() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {VALUES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <div key={title} className="surface-card p-6">
                 <div className="w-11 h-11 bg-primary-50 rounded-xl flex items-center justify-center mb-4">
                   <Icon className="w-6 h-6 text-primary-700" />
                 </div>
@@ -111,7 +118,7 @@ export default function AboutPage() {
       </section>
 
       {/* How it started */}
-      <section className="py-16 px-4 max-w-3xl mx-auto text-center">
+      <section className="mx-auto max-w-3xl px-4 py-14 text-center sm:py-16">
         <Zap className="w-10 h-10 text-primary-700 mx-auto mb-4" />
         <h2 className="text-2xl font-bold mb-4">كيف بدأت الفكرة؟</h2>
         <p className="text-gray-600 leading-relaxed mb-4">
@@ -123,25 +130,23 @@ export default function AboutPage() {
           وإشعارات فورية لأصحاب الأجهزة المسروقة عند البحث عنها.
         </p>
         <p className="text-gray-600 leading-relaxed">
-          اليوم، CheckMyDevice تخدم مستخدمين في 15 دولة عربية وتنمو كل يوم
-          بفضل مجتمعنا الرائع.
+          نواصل تطوير المنصة استناداً إلى احتياجات المستخدمين وملاحظاتهم.
         </p>
       </section>
 
-      {/* Team */}
-      <section className="bg-primary-700 text-white py-16 px-4">
+      <section className="bg-[#f5f3ee] px-4 py-14 sm:py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <Users className="w-8 h-8 mx-auto mb-3 text-blue-300" />
-            <h2 className="text-2xl font-bold mb-2">فريقنا</h2>
-            <p className="text-blue-200 text-sm">مجموعة متحمسة تعمل من أجل أمان المجتمع العربي</p>
+            <p className="text-sm font-semibold text-accent-500">من وراء الخدمة</p>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">الأدوار التي تبني المنصة</h2>
+            <p className="mt-2 text-sm text-gray-500">مسؤوليات مختلفة تعمل معاً لتحسين تجربة الاستخدام.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {TEAM.map(({ name, role, emoji }) => (
-              <div key={name} className="bg-white/10 rounded-2xl p-5">
-                <div className="text-4xl mb-3">{emoji}</div>
-                <div className="font-semibold">{name}</div>
-                <div className="text-blue-300 text-xs mt-1">{role}</div>
+            {TEAM.map(({ name, role, icon: Icon }) => (
+              <div key={name} className="surface-card p-5">
+                <Icon className="mx-auto mb-3 h-6 w-6 text-primary-700" aria-hidden="true" />
+                <div className="font-semibold text-gray-900">{name}</div>
+                <div className="mt-1 text-xs text-gray-500">{role}</div>
               </div>
             ))}
           </div>

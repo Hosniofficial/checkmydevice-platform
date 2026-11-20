@@ -13,9 +13,9 @@ import { getCountryName } from '../lib/countries.js';
 import { formatDate } from '../lib/format.js';
 
 const DEVICE_TYPE = {
-  phone:  { icon: Smartphone, label: 'هاتف',    color: 'text-blue-600 bg-blue-50' },
-  laptop: { icon: Laptop,     label: 'لاب توب', color: 'text-violet-600 bg-violet-50' },
-  tablet: { icon: Tablet,     label: 'تابلت',   color: 'text-teal-600 bg-teal-50' },
+  phone:  { icon: Smartphone, label: 'هاتف',    color: 'text-primary-700 bg-primary-50' },
+  laptop: { icon: Laptop,     label: 'لاب توب', color: 'text-primary-700 bg-primary-50' },
+  tablet: { icon: Tablet,     label: 'تابلت',   color: 'text-primary-700 bg-primary-50' },
 };
 
 function InfoRow({ label, value, ltr = false }) {
@@ -30,8 +30,8 @@ function InfoRow({ label, value, ltr = false }) {
 
 function SectionCard({ title, icon: Icon, iconColor = 'text-primary-600', children }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100 bg-gray-50">
+    <div className="surface-card overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-[#e7e4dc] bg-[#f5f3ee] px-5 py-3.5">
         <Icon className={`w-4 h-4 ${iconColor}`} />
         <h2 className="font-semibold text-sm text-gray-700">{title}</h2>
       </div>
@@ -79,7 +79,7 @@ function ShareCard({ report }) {
   };
 
   return (
-    <div className="bg-gradient-to-l from-primary-700 to-primary-600 rounded-2xl p-5 text-white">
+    <div className="rounded-2xl bg-primary-700 p-5 text-white">
       <div className="flex items-center gap-2 mb-1">
         <Share2 className="w-5 h-5 text-blue-200" />
         <h2 className="font-bold text-base">شارك بلاغك — ربما يساعد</h2>
@@ -191,7 +191,7 @@ export default function ReportDetailPage() {
       </button>
 
       {/* Title card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="surface-card p-5">
         <div className="flex items-center gap-4">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${dt.color}`}>
             <DeviceIcon className="w-6 h-6" strokeWidth={1.8} />
@@ -220,10 +220,10 @@ export default function ReportDetailPage() {
         <div className={`rounded-2xl p-4 border flex gap-3
           ${report.status === 'approved' ? 'bg-green-50 border-green-200' :
             report.status === 'rejected' ? 'bg-red-50 border-red-200'   :
-                                           'bg-blue-50 border-blue-200'}`}>
+                                           'bg-primary-50 border-primary-200'}`}>
           <Shield className={`w-5 h-5 flex-shrink-0 mt-0.5
             ${report.status === 'approved' ? 'text-green-600' :
-              report.status === 'rejected' ? 'text-red-600'   : 'text-blue-600'}`} />
+              report.status === 'rejected' ? 'text-red-600'   : 'text-primary-700'}`} />
           <div>
             <p className="text-sm font-semibold mb-1 text-gray-800">ملاحظة الإدارة</p>
             <p className="text-sm text-gray-700">{report.admin_note}</p>
@@ -233,7 +233,7 @@ export default function ReportDetailPage() {
 
       {/* Device details */}
       <SectionCard title="تفاصيل الجهاز" icon={DeviceIcon} iconColor={dt.color.split(' ')[0]}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoRow label="IMEI"            value={report.imei}           ltr />
           {report.imei2          && <InfoRow label="IMEI 2"         value={report.imei2}          ltr />}
           {report.serial_number  && <InfoRow label="الرقم التسلسلي" value={report.serial_number}  ltr />}
@@ -247,7 +247,7 @@ export default function ReportDetailPage() {
 
       {/* Incident details */}
       <SectionCard title="تفاصيل الحادثة" icon={MapPin} iconColor="text-orange-500">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-3">
+        <div className="mb-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoRow label="الدولة"          value={getCountryName(report.country_code)} />
           {report.city           && <InfoRow label="المدينة"         value={report.city} />}
           {report.incident_date  && <InfoRow label="تاريخ الحادثة"   value={formatDate(report.incident_date)} />}
@@ -257,7 +257,7 @@ export default function ReportDetailPage() {
         {report.description && (
           <div className="pt-3 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-1.5">الوصف</p>
-            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-xl px-4 py-3">
+            <p className="rounded-xl bg-[#f7f6f2] px-4 py-3 text-sm leading-relaxed text-gray-700">
               {report.description}
             </p>
           </div>
@@ -272,7 +272,7 @@ export default function ReportDetailPage() {
       {/* Contact */}
       {(report.contact_whatsapp || report.contact_phone || report.contact_email) && (
         <SectionCard title="بيانات التواصل" icon={Phone} iconColor="text-green-600">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {report.contact_whatsapp && <InfoRow label="واتساب"            value={report.contact_whatsapp} ltr />}
             {report.contact_phone    && <InfoRow label="هاتف"              value={report.contact_phone}    ltr />}
             {report.contact_email    && <InfoRow label="البريد الإلكتروني" value={report.contact_email}    ltr />}
@@ -302,7 +302,7 @@ export default function ReportDetailPage() {
       {/* Cancel action */}
       {canCancel && (
         <button onClick={() => setConfirm(true)} disabled={cancelling}
-          className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-5 py-2.5 rounded-xl transition-colors">
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 sm:w-auto">
           <XCircle className="w-4 h-4" />
           إلغاء البلاغ (تم استرداد الجهاز)
         </button>

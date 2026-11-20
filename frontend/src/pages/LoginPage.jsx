@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, LogIn, ArrowLeft } from 'lucide-react';
+import { Mail, LogIn, ArrowLeft, FileText, Search, ShieldCheck } from 'lucide-react';
 import { loginSchema } from '../lib/validation.js';
 import { Field, Spinner } from '../components/ui/index.jsx';
 import PasswordInput from '../components/ui/PasswordInput.jsx';
@@ -43,33 +43,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <img src="/Logo.png" alt="CheckMyDevice"
-            className="w-16 h-16 object-contain rounded-2xl mx-auto mb-5 shadow-sm" />
-          <h1 className="text-2xl font-bold text-gray-900">تسجيل الدخول</h1>
-          <p className="text-gray-400 text-sm mt-1.5">أهلاً بك في CheckMyDevice</p>
-        </div>
-
-        {/* Redirect notice */}
-        {from && (
-          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700 mb-5">
-            <ArrowLeft className="w-4 h-4 flex-shrink-0" />
-            سجّل دخولك للوصول إلى هذه الصفحة
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
+      <div className="grid items-center gap-8 lg:grid-cols-2">
+        <section className="surface-card order-1 p-5 sm:p-7">
+          <div className="mb-6">
+            <p className="text-sm font-semibold text-accent-500">حسابك في المنصة</p>
+            <h1 className="mt-2 text-2xl font-bold text-gray-900">تسجيل الدخول</h1>
+            <p className="mt-2 text-sm leading-6 text-gray-500">أدخل بيانات حسابك لمتابعة استخدامك للمنصة.</p>
           </div>
-        )}
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          {from && (
+            <div className="mb-5 flex items-center gap-2 rounded-xl border border-primary-100 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+              <ArrowLeft className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              سجّل دخولك للوصول إلى هذه الصفحة
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-
-            {/* Email */}
             <Field label="البريد الإلكتروني" error={errors.email?.message} required>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Mail className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                 <input
                   type="email"
                   dir="ltr"
@@ -80,7 +73,6 @@ export default function LoginPage() {
               </div>
             </Field>
 
-            {/* Password */}
             <div className="space-y-1">
               <PasswordInput
                 register={register}
@@ -91,36 +83,57 @@ export default function LoginPage() {
               />
               <div className="flex justify-end">
                 <Link to="/forgot-password"
-                  className="text-xs text-primary-700 hover:text-primary-900 hover:underline mt-1.5 inline-block transition-colors">
+                  className="mt-1.5 inline-block text-xs text-primary-700 transition-colors hover:text-primary-900 hover:underline">
                   نسيت كلمة المرور؟
                 </Link>
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base disabled:opacity-70">
+              className="btn-primary flex w-full items-center justify-center gap-2 py-3 text-base disabled:opacity-70">
               {loading
                 ? <><Spinner size={20} /> جاري تسجيل الدخول...</>
-                : <><LogIn className="w-5 h-5" /> دخول</>}
+                : <><LogIn className="h-5 w-5" /> دخول</>}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-xs text-gray-400">ليس لديك حساب؟</span>
-            <div className="flex-1 h-px bg-gray-100" />
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-500">ليس لديك حساب؟</span>
+            <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          <Link to="/register"
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border-2 border-primary-100 text-primary-700 text-sm font-semibold hover:bg-primary-50 transition-colors">
+          <Link to="/register" className="btn-outline flex w-full items-center justify-center py-2.5 text-sm">
             إنشاء حساب مجاني
           </Link>
-        </div>
+        </section>
 
+        <aside className="order-2 rounded-3xl bg-[#f0eee7] p-6 sm:p-8">
+          <img src="/Logo.png" alt="" className="mb-6 h-12 w-12 object-contain" />
+          <p className="text-sm font-semibold text-primary-700">CheckMyDevice</p>
+          <h2 className="mt-2 max-w-md text-2xl font-bold leading-relaxed text-primary-900">
+            تابع بلاغاتك وعمليات البحث من مكان واحد
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-gray-600">
+            سجّل الدخول للوصول إلى أدوات حسابك ومتابعة حالة البلاغات التي أرسلتها.
+          </p>
+          <div className="mt-7 space-y-4 border-t border-[#dedbd2] pt-5">
+            <div className="flex items-center gap-3 text-sm text-gray-700">
+              <FileText className="h-4 w-4 flex-shrink-0 text-primary-700" aria-hidden="true" />
+              متابعة البلاغات المسجلة في حسابك
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-700">
+              <Search className="h-4 w-4 flex-shrink-0 text-primary-700" aria-hidden="true" />
+              الوصول إلى أدوات البحث المتاحة
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-700">
+              <ShieldCheck className="h-4 w-4 flex-shrink-0 text-primary-700" aria-hidden="true" />
+              مراجعة بيانات التواصل وإعدادات الحساب
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

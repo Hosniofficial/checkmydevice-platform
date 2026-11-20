@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { query } from '../../db/pool.js';
+import { getClient, query } from '../../db/pool.js';
 import { ok, err, getPagination, paginate } from '../../utils/response.js';
 import { authenticate, requireRole } from '../../middleware/auth.middleware.js';
 import { sendReportStatusEmail } from '../../services/email.service.js';
@@ -7,6 +7,7 @@ import { auditLog } from '../../utils/audit.js';
 import { activateSubscription } from '../../services/subscription.service.js';
 import { cacheGet, cacheSet, cacheDel, cacheDelPattern, KEY, TTL } from '../../services/redis.service.js';
 import { lookupDevice } from '../../services/deviceLookup.service.js';
+import { deleteCloudinaryFile } from '../../services/cloudinary.service.js';
 
 const router = Router();
 const isAdmin = [authenticate, requireRole('admin','super_admin')];
@@ -101,23 +102,50 @@ router.get('/reports/:id', ...isAdmin, async (req, res) => {
 // ─── Delete report (Super Admin only) ────────────────────────────
 router.delete('/reports/:id', authenticate, requireRole('super_admin'), async (req, res) => {
   const { reason } = req.body;
-
-  const check = await query(
-    `SELECT dr.*, u.email, u.full_name FROM devices_reports dr
-     JOIN users u ON dr.user_id = u.id WHERE dr.id = $1`,
-    [req.params.id]
-  );
-  if (!check.rows.length) return err(res, 'NOT_FOUND', 'البلاغ غير موجود', '', 404);
-  const report = check.rows[0];
-
-  // Delete documents files from disk then DB rows (cascade handles DB)
-  await query('DELETE FROM report_documents WHERE report_id = $1', [req.params.id]);
-  await query('DELETE FROM devices_reports WHERE id = $1', [req.params.id]);
-
-  // Invalidate search cache for this IMEI
-  if (report.imei) {
-    await cacheDelPattern(`search:imei:${report.imei}*`);
+  const client = await getClient();
+  let transactionOpen = false;
+  let report;
+  let documents = [];
+  try {
+    await client.query('BEGIN');
+    transactionOpen = true;
+    const check = await client.query(
+      `SELECT dr.*, u.email, u.full_name FROM devices_reports dr
+       JOIN users u ON dr.user_id = u.id WHERE dr.id = $1 FOR UPDATE OF dr`,
+      [req.params.id]
+    );
+    if (!check.rows.length) {
+      await client.query('ROLLBACK');
+      transactionOpen = false;
+      return err(res, 'NOT_FOUND', 'البلاغ غير موجود', '', 404);
+    }
+    report = check.rows[0];
+    const docsResult = await client.query(
+      'SELECT file_url FROM report_documents WHERE report_id = $1',
+      [req.params.id]
+    );
+    documents = docsResult.rows;
+    await client.query('DELETE FROM devices_reports WHERE id = $1', [req.params.id]);
+    await client.query('COMMIT');
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('[Admin] Report deletion rollback failed:', rollbackError.message);
+      }
+    }
+    throw error;
+  } finally {
+    client.release();
   }
+
+  for (const document of documents) {
+    await deleteCloudinaryFile(document.file_url);
+  }
+
+  await cacheDelPattern('search:*');
   await cacheDel(KEY.dashStats());
 
   await auditLog({
@@ -160,7 +188,7 @@ router.patch('/reports/:id/approve', ...isAdmin, async (req, res) => {
 
   // Invalidate caches
   await cacheDel(KEY.dashStats());
-  await cacheDelPattern('search:imei:*');
+  await cacheDelPattern('search:*');
   ok(res, { message_ar: 'تم قبول البلاغ وإضافة الجهاز للقاعدة.' });
 });
 

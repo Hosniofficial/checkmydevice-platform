@@ -8,41 +8,46 @@
     font-family: 'Cairo', 'Tajawal', sans-serif;
     direction: rtl;
     text-align: right;
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-[#f7f6f2] text-gray-900;
   }
   input, textarea, select, button { font-family: inherit; }
+  h1, h2, h3 { @apply tracking-tight; }
+  :focus-visible { @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white; }
 }
 
 @layer components {
   .btn-primary {
     @apply bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold
-           hover:bg-primary-900 active:scale-95 transition-all duration-150
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           hover:bg-primary-900 hover:shadow-sm active:translate-y-px
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-outline {
-    @apply border-2 border-primary-700 text-primary-700 px-6 py-3 rounded-xl font-semibold
-           hover:bg-primary-50 active:scale-95 transition-all duration-150;
+    @apply border border-primary-700 text-primary-700 px-6 py-3 rounded-xl font-semibold
+           hover:bg-primary-50 active:translate-y-px transition-all duration-150;
   }
   .btn-danger {
     @apply bg-red-600 text-white px-6 py-3 rounded-xl font-semibold
-           hover:bg-red-700 active:scale-95 transition-all duration-150;
+           hover:bg-red-700 active:translate-y-px transition-all duration-150;
   }
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
+    @apply bg-white rounded-2xl shadow-sm border border-[#e7e4dc] p-6;
+  }
+  .surface-card {
+    @apply bg-white rounded-2xl shadow-sm border border-[#e7e4dc];
   }
   .input {
-    @apply w-full border border-gray-300 rounded-xl px-4 py-3 text-right
+    @apply w-full border border-[#d8d6d0] rounded-xl px-4 py-3 text-right
            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
            transition-all duration-150 bg-white;
   }
-  .badge-pending      { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
-  .badge-approved     { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800; }
-  .badge-rejected     { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800; }
+  .badge-pending      { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800; }
+  .badge-approved     { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-800; }
+  .badge-rejected     { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-800; }
   .badge-cancelled    { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600; }
-  .badge-under_review { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
-  .badge-active         { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800; }
-  .badge-suspended      { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800; }
-  .badge-pending_verify { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
+  .badge-under_review { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-800; }
+  .badge-active         { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-800; }
+  .badge-suspended      { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-red-50 text-red-800; }
+  .badge-pending_verify { @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800; }
 }
 
 /* Spinner */
@@ -61,6 +66,15 @@
 /* Fade in */
 .fade-in { animation: fadeIn 0.3s ease-in; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* ── Blog article prose styles ────────────────────────────────── */
 @layer components {

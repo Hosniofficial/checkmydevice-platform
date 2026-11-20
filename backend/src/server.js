@@ -4,8 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -26,7 +24,6 @@ import plansRoutes         from './modules/plans/plans.routes.js';
 import systemRoutes        from './modules/system/system.routes.js';
 import merchantRoutes      from './modules/merchant/merchant.routes.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // ── 1. Sentry (MUST be first) ─────────────────────────────────────
@@ -50,6 +47,10 @@ app.use(cors({
       .map(u => u.trim());
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin || allowed.includes(origin)) return callback(null, true);
+    if (process.env.NODE_ENV !== 'production' &&
+      ['http://localhost:3000', 'http://127.0.0.1:3000'].includes(origin)) {
+      return callback(null, true);
+    }
     // Allow any *.vercel.app subdomain for preview deployments
     if (/\.vercel\.app$/.test(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
@@ -76,13 +77,10 @@ app.use('/api/', rateLimit({
   },
 }));
 
-// ── 6. Static uploads ─────────────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-
-// ── 7. Swagger Docs (before routes) ──────────────────────────────
+// ── 6. Swagger Docs (before routes) ──────────────────────────────
 setupSwagger(app);
 
-// ── 8. Routes ─────────────────────────────────────────────────────
+// ── 7. Routes ─────────────────────────────────────────────────────
 // Increase timeout for file upload routes (Cloudinary can take time)
 app.use('/api/reports', (req, res, next) => {
   if (req.method === 'POST') {
@@ -102,7 +100,7 @@ app.use('/api/system',        systemRoutes);
 app.use('/api/merchant',      merchantRoutes);
 app.use('/api/v1',            merchantRoutes); // external API
 
-// ── 9. Health check ───────────────────────────────────────────────
+// ── 8. Health check ───────────────────────────────────────────────
 app.get('/health', (req, res) => res.json({
   status: 'ok',
   time:   new Date().toISOString(),
@@ -110,16 +108,16 @@ app.get('/health', (req, res) => res.json({
   sentry: process.env.SENTRY_DSN ? 'enabled' : 'dry-run',
 }));
 
-// ── 10. 404 ───────────────────────────────────────────────────────
+// ── 9. 404 ───────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({
   success: false,
   error: { code: 'NOT_FOUND', message_ar: 'الرابط غير موجود', path: req.path },
 }));
 
-// ── 11. Sentry error handler (BEFORE custom error handler) ────────
+// ── 10. Sentry error handler (BEFORE custom error handler) ────────
 app.use(sentryErrorHandler());
 
-// ── 12. Custom error handler ──────────────────────────────────────
+// ── 11. Custom error handler ──────────────────────────────────────
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   captureError(err, { path: req.path, method: req.method });
@@ -139,7 +137,8 @@ async function bootstrap() {
   await connectRedis();
 
   const PORT = parseInt(process.env.PORT || '5000');
-  app.listen(PORT, () => {
+  const HOST = process.env.HOST || (process.env.NODE_ENV === 'development' ? '127.0.0.1' : '0.0.0.0');
+  app.listen(PORT, HOST, () => {
     console.log(`✅ CheckMyDevice API  → http://localhost:${PORT}`);
     console.log(`📚 Swagger Docs       → http://localhost:${PORT}/api-docs`);
     console.log(`📊 System Status      → http://localhost:${PORT}/api/system/status`);

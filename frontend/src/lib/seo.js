@@ -5,20 +5,20 @@
 
 const BASE_URL   = 'https://checkmydevice.online';
 const SITE_NAME  = 'CheckMyDevice';
-const OG_IMAGE   = `${BASE_URL}/android-chrome-512x512.png`;
+const OG_IMAGE   = `${BASE_URL}/android-chrome-512x512.png?v=20261120`;
 
 export const SEO_PAGES = {
   home: {
     title: 'CheckMyDevice — فحص الأجهزة المحمولة قبل الشراء',
     description:
-      'تحقق من هاتفك قبل الشراء — هل الجهاز مسروق أو مفقود؟ أول منصة عربية لفحص IMEI الأجهزة المحمولة في 15 دولة عربية.',
+      'راجع معلومات الجهاز والبلاغات المتاحة باستخدام رقم IMEI قبل الشراء. لا تغني النتيجة عن فحص الجهاز لدى جهة موثوقة.',
     canonical: `${BASE_URL}/`,
     keywords: 'فحص IMEI, هاتف مسروق, فحص الجهاز قبل الشراء, CheckMyDevice, هاتف مفقود, تحقق من الجهاز',
   },
   search: {
     title: 'فحص جهاز — تحقق من IMEI | CheckMyDevice',
     description:
-      'أدخل رقم IMEI أو الرقم التسلسلي للجهاز وتحقق فوراً هل هو مسروق أو مفقود. فحص مجاني لأي جهاز محمول.',
+      'أدخل رقم IMEI أو الرقم التسلسلي لمراجعة معلومات الجهاز والبلاغات المتاحة. غياب البلاغات لا يثبت سلامة الجهاز.',
     canonical: `${BASE_URL}/search`,
     keywords: 'فحص IMEI مجاني, التحقق من هاتف مسروق, رقم IMEI, فحص الرقم التسلسلي',
   },
@@ -32,7 +32,7 @@ export const SEO_PAGES = {
   about: {
     title: 'من نحن | CheckMyDevice',
     description:
-      'CheckMyDevice منصة عربية رائدة لفحص الأجهزة المحمولة والتحقق من حالتها. نحمي المشترين ونساعد أصحاب الأجهزة المسروقة على استردادها.',
+      'CheckMyDevice منصة عربية تساعد على مراجعة معلومات الأجهزة والبلاغات المتاحة قبل الشراء.',
     canonical: `${BASE_URL}/about`,
     keywords: 'عن CheckMyDevice, منصة فحص أجهزة عربية, فريق CheckMyDevice',
   },

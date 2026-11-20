@@ -52,7 +52,7 @@ export default function NotFoundPage() {
           </div>
 
           {/* Quick links */}
-          <div className="border-t border-gray-100 pt-6">
+          <div className="border-t border-[#e7e4dc] pt-6">
             <p className="text-xs text-gray-400 mb-3">روابط مفيدة</p>
             <div className="flex flex-wrap justify-center gap-3">
               {[

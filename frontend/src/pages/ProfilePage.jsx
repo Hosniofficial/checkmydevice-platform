@@ -122,8 +122,11 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">إعدادات الحساب</h1>
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="mb-6">
+        <p className="text-sm font-semibold text-accent-500">حسابك</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">إعدادات الحساب</h1>
+      </div>
 
       {/* Email verification banner */}
       {!user?.email_verified && (
@@ -176,9 +179,9 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-6">
+      <div className="mb-6 flex gap-1 rounded-2xl bg-[#f0eee7] p-1">
         {TABS.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => setActiveTab(id)}
+          <button key={id} onClick={() => setActiveTab(id)} aria-label={label}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all
               ${activeTab === id
                 ? 'bg-white shadow text-primary-700'
@@ -205,7 +208,7 @@ export default function ProfilePage() {
                 {...profileForm.register('full_name')} />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="رقم الهاتف" error={profileForm.formState.errors.phone?.message}>
                 <input dir="ltr" className={`input ${profileForm.formState.errors.phone ? 'border-red-400' : ''}`}
                   placeholder="+201001234567"
@@ -227,7 +230,7 @@ export default function ProfilePage() {
             </Field>
 
             <button type="submit" disabled={savingProfile}
-              className="btn-primary flex items-center gap-2">
+              className="btn-primary flex w-full items-center justify-center gap-2 sm:w-auto">
               {savingProfile ? <Spinner size={18} /> : profileSaved ? <CheckCircle className="w-4 h-4" /> : null}
               {savingProfile ? 'جاري الحفظ...' : profileSaved ? 'تم الحفظ!' : 'حفظ التغييرات'}
             </button>
@@ -266,7 +269,7 @@ export default function ProfilePage() {
               error={pwForm.formState.errors.confirm_password?.message}
               required
             />
-            <button type="submit" disabled={savingPassword} className="btn-primary flex items-center gap-2">
+            <button type="submit" disabled={savingPassword} className="btn-primary flex w-full items-center justify-center gap-2 sm:w-auto">
               {savingPassword ? <Spinner size={18} /> : <Key className="w-4 h-4" />}
               {savingPassword ? 'جاري الحفظ...' : 'تغيير كلمة المرور'}
             </button>

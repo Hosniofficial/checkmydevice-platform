@@ -14,16 +14,18 @@ import { formatDate, formatDateLong } from '../../lib/format.js';
 // ── StatCard component ────────────────────────────────────────────
 function StatCard({ label, value, sub, icon: Icon, iconBg, iconColor, border }) {
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm p-5 flex items-start gap-4 ${border || 'border-gray-100'}`}>
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+    <div className={`surface-card p-5 ${border || ''}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
         <Icon className={`w-5 h-5 ${iconColor}`} />
+        </div>
+        <span className="text-sm font-medium text-gray-500">{label}</span>
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-2xl font-bold text-gray-900 leading-none mb-1">
+      <div className="mt-5">
+        <div className="text-3xl font-bold leading-none text-primary-900">
           {value ?? <span className="text-gray-300 text-lg">—</span>}
         </div>
-        <div className="text-sm text-gray-500">{label}</div>
-        {sub && <div className="text-xs text-gray-400 mt-1 leading-snug">{sub}</div>}
+        {sub && <div className="mt-2 text-xs leading-snug text-gray-500">{sub}</div>}
       </div>
     </div>
   );
@@ -36,26 +38,28 @@ function AcceptanceRateCard({ approved, rejected }) {
   const color = rate === null ? 'bg-gray-200' : rate >= 70 ? 'bg-green-500' : rate >= 40 ? 'bg-amber-400' : 'bg-red-500';
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4">
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-teal-50">
-        <TrendingUp className="w-5 h-5 text-teal-600" />
+    <div className="surface-card p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50">
+          <TrendingUp className="h-5 w-5 text-primary-700" />
+        </div>
+        <div className="text-sm font-medium text-gray-500">معدل قبول البلاغات</div>
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-2xl font-bold text-gray-900 leading-none mb-1">
+      <div className="mt-5">
+        <div className="text-3xl font-bold leading-none text-primary-900">
           {rate !== null ? `${rate}%` : <span className="text-gray-300 text-lg">—</span>}
         </div>
-        <div className="text-sm text-gray-500">معدل قبول البلاغات</div>
         {total > 0 && (
           <>
-            <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#eeece5]">
               <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${rate}%` }} />
             </div>
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="mt-2 text-xs text-gray-500">
               {approved} مقبول / {rejected} مرفوض من أصل {total}
             </div>
           </>
         )}
-        {total === 0 && <div className="text-xs text-gray-400 mt-1">لا توجد بيانات كافية بعد</div>}
+        {total === 0 && <div className="mt-2 text-xs text-gray-500">لا توجد بيانات كافية بعد</div>}
       </div>
     </div>
   );
@@ -86,14 +90,30 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <SEOHead page="admin/dashboard" />
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">لوحة التحكم</h1>
-        <p className="text-sm text-gray-400 mt-1">{formatDateLong(new Date())}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+        <p className="text-sm font-semibold text-accent-500">الإدارة</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">لوحة التحكم</h1>
+        <p className="mt-1 text-sm text-gray-500">ملخص البلاغات والمستخدمين وعمليات البحث</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-[#f0eee7] px-3 py-2 text-xs text-gray-600">
+            {formatDateLong(new Date())}
+          </span>
+          <Link to="/admin/reports?status=pending" className="btn-primary flex items-center justify-center gap-2 px-4 py-2.5 text-sm">
+            <Clock className="h-4 w-4" /> مراجعة البلاغات
+          </Link>
+          <Link to="/admin/users" className="btn-outline flex items-center justify-center px-4 py-2.5 text-sm">
+            المستخدمون
+          </Link>
+        </div>
       </div>
 
       {/* ── Row 1: Reports (4 cards) ──────────────────────────────── */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">البلاغات</h2>
+        <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-bold text-primary-900">
+          <span className="h-5 w-1 rounded-full bg-primary-700" /> البلاغات
+        </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="بلاغات معلقة"
@@ -102,7 +122,7 @@ export default function AdminDashboard() {
             icon={Clock}
             iconBg="bg-amber-50"
             iconColor="text-amber-600"
-            border={Number(r.pending) > 0 ? 'border-amber-200' : 'border-gray-100'}
+            border={Number(r.pending) > 0 ? 'border-amber-200' : 'border-[#e7e4dc]'}
           />
           <StatCard
             label="بلاغات مقبولة"
@@ -125,7 +145,9 @@ export default function AdminDashboard() {
 
       {/* ── Row 2: Users (2 cards) ────────────────────────────────── */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">المستخدمون</h2>
+        <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-bold text-primary-900">
+          <span className="h-5 w-1 rounded-full bg-primary-700" /> المستخدمون
+        </h2>
         <div className="grid grid-cols-2 gap-4">
           <StatCard
             label="إجمالي المستخدمين"
@@ -147,7 +169,9 @@ export default function AdminDashboard() {
 
       {/* ── Row 3: Search + Cache (3 cards) ──────────────────────── */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">عمليات البحث</h2>
+        <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-bold text-primary-900">
+          <span className="h-5 w-1 rounded-full bg-primary-700" /> عمليات البحث
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             label="عمليات البحث اليوم"
@@ -175,8 +199,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Pending reports table ─────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <div className="surface-card">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e7e4dc] px-5 py-4 sm:px-6">
           <h2 className="font-semibold text-gray-800 flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${Number(r.pending) > 0 ? 'bg-amber-500 animate-pulse' : 'bg-gray-300'}`} />
             الطلبات المعلقة
@@ -190,24 +214,24 @@ export default function AdminDashboard() {
 
         {!recent.length ? (
           <div className="px-6 py-10 text-center">
-            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#f7f6f2]">
               <FileText className="w-5 h-5 text-gray-300" />
             </div>
             <p className="text-sm font-medium text-gray-500">لا توجد طلبات تحتاج مراجعة حالياً</p>
             <p className="text-xs text-gray-400 mt-1">ستظهر هنا البلاغات الجديدة عند وصولها</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[#eeece5]">
             {recent.map(item => (
               <Link key={item.id} to={`/admin/reports/${item.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50/80 transition-colors group">
+                className="group flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-[#f7f6f2] sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50">
                     <AlertCircle className="w-4 h-4 text-amber-500" />
                   </div>
                   <div className="min-w-0">
                     <span className="font-medium text-sm text-gray-900">{item.brand} {item.model}</span>
-                    <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
                       <span dir="ltr">{item.owner_email}</span>
                       <span>·</span>
                       <span>{getCountryName(item.country_code)}</span>
@@ -216,7 +240,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full
                     ${item.report_type === 'stolen' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
                     {item.report_type === 'stolen' ? 'مسروق' : 'مفقود'}

@@ -15,6 +15,25 @@
 
 import { z } from 'zod';
 
+export const IMEI_VALIDATION_MESSAGE = 'رقم IMEI غير صحيح؛ تأكد من عدد الأرقام ورقم التحقق.';
+
+export function isValidIMEI(value) {
+  const imei = String(value ?? '').trim().replace(/\s/g, '');
+  if (!/^\d{14,16}$/.test(imei)) return false;
+
+  const digits = imei.slice(0, 15).split('').map(Number);
+  let sum = 0;
+  for (let i = 0; i < digits.length; i++) {
+    let digit = digits[i];
+    if (i % 2 === 1) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+  }
+  return sum % 10 === 0;
+}
+
 // ─── Email ────────────────────────────────────────────────────────
 const emailField = z
   .string()

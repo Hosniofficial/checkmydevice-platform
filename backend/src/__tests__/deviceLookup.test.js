@@ -3,9 +3,46 @@
  * Coverage: validateIMEI, lookupDevice (3-layer cache), provider switching
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import dotenv from 'dotenv';
-dotenv.config();
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+
+const dbCache = new Map();
+const redisCache = new Map();
+
+jest.unstable_mockModule('../db/pool.js', () => ({
+  query: jest.fn(async (sql, params = []) => {
+    if (sql.startsWith('SELECT * FROM device_cache')) {
+      const row = dbCache.get(params[0]);
+      return { rows: row ? [row] : [] };
+    }
+
+    if (sql.startsWith('INSERT INTO device_cache')) {
+      dbCache.set(params[0], {
+        imei: params[0],
+        brand: params[1],
+        model: params[2],
+        model_code: params[3],
+        device_type: params[4],
+        storage: params[5],
+        color: params[6],
+        network: params[7],
+        released: params[8],
+      });
+      return { rows: [] };
+    }
+
+    throw new Error(`Unexpected database query in test: ${sql}`);
+  }),
+}));
+
+jest.unstable_mockModule('../services/redis.service.js', () => ({
+  cacheGet: jest.fn(async (key) => redisCache.has(key) ? redisCache.get(key) : null),
+  cacheSet: jest.fn(async (key, value) => {
+    redisCache.set(key, value);
+    return true;
+  }),
+  KEY: { deviceInfo: (imei) => `device:info:${imei}` },
+  TTL: { DEVICE_INFO: 21600 },
+}));
 
 // ─── validateIMEI ─────────────────────────────────────────────────
 describe('validateIMEI()', () => {
@@ -51,23 +88,20 @@ describe('validateIMEI()', () => {
   });
 });
 
-// ─── lookupDevice (Integration — needs DB) ────────────────────────
+// ─── lookupDevice (unit tests with in-memory cache adapters) ───────
 describe('lookupDevice() with Mock provider', () => {
-  let lookupDevice, validateIMEI, pool;
+  let lookupDevice, validateIMEI;
 
   beforeAll(async () => {
     process.env.IMEI_PROVIDER = 'mock';
     const mod       = await import('../services/deviceLookup.service.js');
-    const pool_mod  = await import('../db/pool.js');
     lookupDevice    = mod.lookupDevice;
     validateIMEI    = mod.validateIMEI;
-    pool            = pool_mod.default;
   });
 
-  afterAll(async () => {
-    // Cleanup test IMEIs from cache
-    await pool.query("DELETE FROM device_cache WHERE imei LIKE '3582400511%'").catch(() => {});
-    await pool.end().catch(() => {});
+  afterAll(() => {
+    dbCache.clear();
+    redisCache.clear();
   });
 
   it('returns device info for known Apple IMEI prefix (35...)', async () => {
@@ -81,8 +115,6 @@ describe('lookupDevice() with Mock provider', () => {
   it('source is "api" on first lookup (cache miss)', async () => {
     // Use a fresh unique IMEI unlikely to be in cache
     const testImei = '358240051999990';
-    // Clear any existing cache entry
-    await pool.query('DELETE FROM device_cache WHERE imei=$1', [testImei]).catch(() => {});
     const result = await lookupDevice(testImei);
     expect(['api', 'redis_cache', 'db_cache']).toContain(result.source);
     expect(result.found).toBe(true);

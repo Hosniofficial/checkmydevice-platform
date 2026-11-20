@@ -32,16 +32,20 @@ services:
         value: https://alpha.imeicheck.com
       - key: IMEICHECK_API_KEY
         sync: false          # set manually
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        value: 587
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
+      - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
         value: "CheckMyDevice <noreply@checkmydevice.com>"
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: SENTRY_DSN
         sync: false
 

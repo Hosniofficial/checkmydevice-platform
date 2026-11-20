@@ -14,6 +14,7 @@ export async function authenticate(req, res, next) {
     if (!result.rows.length) return res.status(401).json({ success: false, error: { code: 'USER_NOT_FOUND' } });
     const user = result.rows[0];
     if (user.status === 'suspended') return res.status(403).json({ success: false, error: { code: 'ACCOUNT_SUSPENDED', message_ar: 'حسابك موقوف' } });
+    if (!user.email_verified) return res.status(403).json({ success: false, error: { code: 'EMAIL_NOT_VERIFIED', message_ar: 'يرجى تفعيل بريدك الإلكتروني أولاً' } });
     req.user = user;
     next();
   } catch {
@@ -55,6 +56,9 @@ export async function apiKeyAuth(req, res, next) {
      WHERE m.api_key=$1 AND m.is_active=TRUE`, [key]
   );
   if (!result.rows.length) return res.status(401).json({ success: false, error: { code: 'INVALID_API_KEY' } });
+  if (result.rows[0].status !== 'active') {
+    return res.status(403).json({ success: false, error: { code: 'ACCOUNT_UNAVAILABLE' } });
+  }
   req.merchant = result.rows[0];
   next();
 }

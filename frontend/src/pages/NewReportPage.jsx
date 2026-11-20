@@ -164,7 +164,7 @@ export default function NewReportPage() {
 
   // ── Done screen ────────────────────────────────────────────────
   if (done) return (
-    <div className="max-w-md mx-auto px-4 py-16 text-center">
+    <div className="surface-card mx-auto my-10 max-w-md px-5 py-12 text-center sm:px-8">
       <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
         <CheckCircle className="w-12 h-12 text-green-600" />
       </div>
@@ -185,10 +185,17 @@ export default function NewReportPage() {
   );
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">رفع بلاغ جديد</h1>
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
+      <div className="mb-6">
+        <p className="text-sm font-semibold text-accent-500">مساعدة المجتمع</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">الإبلاغ عن جهاز</h1>
+        <p className="mt-2 text-sm leading-6 text-gray-500">أكمل الخطوات التالية لإرسال بلاغ عن جهاز مفقود أو مسروق.</p>
+      </div>
 
       {/* Step indicator */}
+      <p className="mb-3 text-xs font-medium text-gray-500 sm:hidden">
+        الخطوة {step + 1} من {STEPS.length} · {STEPS[step]}
+      </p>
       <div className="flex items-center mb-8">
         {STEPS.map((label, i) => (
           <React.Fragment key={i}>
@@ -230,37 +237,26 @@ export default function NewReportPage() {
                     v: 'phone',
                     label: 'هاتف',
                     icon: Smartphone,
-                    active: 'border-blue-500 bg-blue-50 text-blue-700 shadow-blue-100',
-                    inactive: 'border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50/50',
-                    iconActive: 'text-blue-600 bg-blue-100',
-                    iconInactive: 'text-gray-400 bg-gray-100',
                   },
                   {
                     v: 'laptop',
                     label: 'لاب توب',
                     icon: Laptop,
-                    active: 'border-violet-500 bg-violet-50 text-violet-700 shadow-violet-100',
-                    inactive: 'border-gray-200 text-gray-500 hover:border-violet-300 hover:bg-violet-50/50',
-                    iconActive: 'text-violet-600 bg-violet-100',
-                    iconInactive: 'text-gray-400 bg-gray-100',
                   },
                   {
                     v: 'tablet',
                     label: 'تابلت',
                     icon: Tablet,
-                    active: 'border-teal-500 bg-teal-50 text-teal-700 shadow-teal-100',
-                    inactive: 'border-gray-200 text-gray-500 hover:border-teal-300 hover:bg-teal-50/50',
-                    iconActive: 'text-teal-600 bg-teal-100',
-                    iconInactive: 'text-gray-400 bg-gray-100',
                   },
-                ].map(({ v, label, icon: Icon, active, inactive, iconActive, iconInactive }) => {
+                ].map(({ v, label, icon: Icon }) => {
                   const isSelected = form.device_type === v;
                   return (
                     <button key={v} type="button" onClick={() => sv('device_type', v)}
-                      className={`relative flex flex-col items-center gap-2 py-3 px-2 rounded-xl border-2 font-medium transition-all duration-200 shadow-sm
-                        ${isSelected ? `${active} shadow-md` : inactive}`}>
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors
-                        ${isSelected ? iconActive : iconInactive}`}>
+                      aria-pressed={isSelected}
+                      className={`relative flex flex-col items-center gap-2 rounded-xl border px-2 py-3 font-medium transition-all
+                        ${isSelected ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-[#e7e4dc] text-gray-600 hover:border-primary-200 hover:bg-primary-50/50'}`}>
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors
+                        ${isSelected ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-400'}`}>
                         <Icon className="w-5 h-5" strokeWidth={1.8}/>
                       </div>
                       <span className="text-xs">{label}</span>
@@ -435,9 +431,9 @@ export default function NewReportPage() {
             <h2 className="font-bold text-lg flex items-center gap-2">
               <Upload className="w-5 h-5 text-primary-700"/> إثبات الملكية
             </h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <p className="text-sm text-blue-800 font-medium mb-2">الصور المقبولة:</p>
-              <ul className="text-xs text-blue-700 space-y-1">
+            <div className="rounded-xl border border-primary-100 bg-primary-50 p-4">
+              <p className="mb-2 text-sm font-medium text-primary-800">الصور المقبولة:</p>
+              <ul className="space-y-1 text-xs text-primary-700">
                 <li>📦 صورة علبة الجهاز (تظهر IMEI والموديل)</li>
                 <li>🧾 فاتورة الشراء</li>
                 <li>📸 صورة للجهاز مع بطاقة الهوية</li>
@@ -500,7 +496,7 @@ export default function NewReportPage() {
             </Field>
 
             {/* Reward */}
-            <div className="bg-gray-50 rounded-xl p-4">
+            <div className="rounded-xl border border-[#e7e4dc] bg-[#f7f6f2] p-4">
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <input type="checkbox" checked={form.reward_offered} onChange={f('reward_offered')} className="w-4 h-4 rounded"/>
                 <div>
@@ -537,19 +533,19 @@ export default function NewReportPage() {
         )}
 
         {/* Navigation */}
-        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+        <div className="mt-6 flex flex-col gap-3 border-t border-[#e7e4dc] pt-4 sm:flex-row sm:items-center">
           {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)} className="btn-outline flex items-center gap-2">
+            <button onClick={() => setStep(s => s - 1)} className="btn-outline flex w-full items-center justify-center gap-2 sm:w-auto">
               <ChevronRight className="w-4 h-4"/> السابق
             </button>
           )}
-          <div className="flex-1"/>
+          <div className="hidden flex-1 sm:block"/>
           {step < STEPS.length - 1 ? (
-            <button onClick={next} className="btn-primary flex items-center gap-2">
+            <button onClick={next} className="btn-primary flex w-full items-center justify-center gap-2 sm:w-auto">
               التالي <ChevronLeft className="w-4 h-4"/>
             </button>
           ) : (
-            <button onClick={submit} disabled={loading} className="btn-primary flex items-center gap-2 min-w-[140px] justify-center">
+            <button onClick={submit} disabled={loading} className="btn-primary flex min-w-[140px] w-full items-center justify-center gap-2 sm:w-auto">
               {loading ? <Spinner size={20}/> : <Send className="w-4 h-4" />}
               {loading ? 'جاري الإرسال...' : 'إرسال البلاغ'}
             </button>

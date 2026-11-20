@@ -67,14 +67,14 @@ function DeviceInfoCard({ info, source, dbCache }) {
       {rows.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {rows.map(r => (
-            <div key={r.label} className="bg-gray-50 rounded-xl px-3 py-2.5">
+            <div key={r.label} className="rounded-xl bg-[#f7f6f2] px-3 py-2.5">
               <div className="text-xs text-gray-400 mb-0.5">{r.label}</div>
               <div className="text-sm font-medium text-gray-800">{r.value}</div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400 bg-gray-50 rounded-xl px-4 py-3">
+        <p className="rounded-xl bg-[#f7f6f2] px-4 py-3 text-sm text-gray-400">
           لا توجد معلومات متاحة عن هذا الجهاز
         </p>
       )}
@@ -88,7 +88,7 @@ function AllReportsCard({ reports }) {
       <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
         <Shield className="w-4 h-4 text-gray-400" /> البلاغات
       </div>
-      <p className="text-sm text-gray-400 bg-gray-50 rounded-xl px-4 py-3">لا توجد بلاغات لهذا الجهاز</p>
+      <p className="rounded-xl bg-[#f7f6f2] px-4 py-3 text-sm text-gray-400">لا توجد بلاغات لهذا الجهاز</p>
     </div>
   );
 
@@ -101,7 +101,7 @@ function AllReportsCard({ reports }) {
       </div>
       <div className="space-y-3">
         {reports.map((rep, i) => (
-          <div key={rep.id || i} className="border border-gray-100 rounded-xl p-4 space-y-3">
+          <div key={rep.id || i} className="space-y-3 rounded-xl border border-[#e7e4dc] p-4">
             {/* Header row */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
@@ -116,11 +116,11 @@ function AllReportsCard({ reports }) {
 
             {/* Owner info — admin-only data */}
             {(rep.owner_email || rep.owner_name) && (
-              <div className="bg-blue-50 rounded-lg px-3 py-2 text-xs">
-                <span className="text-blue-500 font-medium">صاحب البلاغ: </span>
-                <span className="text-blue-800">{rep.owner_name || '—'}</span>
+              <div className="rounded-lg bg-primary-50 px-3 py-2 text-xs">
+                <span className="font-medium text-primary-600">صاحب البلاغ: </span>
+                <span className="text-primary-900">{rep.owner_name || '—'}</span>
                 {rep.owner_email && (
-                  <span className="text-blue-600 mr-2" dir="ltr">({rep.owner_email})</span>
+                  <span className="mr-2 text-primary-700" dir="ltr">({rep.owner_email})</span>
                 )}
               </div>
             )}
@@ -188,79 +188,105 @@ export default function AdminSearch() {
     <div className="space-y-6">
       <SEOHead page="admin/search" />
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">بحث IMEI</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm font-semibold text-accent-500">الإدارة</p>
+        <h1 className="mt-1 text-2xl font-bold text-primary-900">بحث IMEI</h1>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gray-500">
           بحث مباشر في قاعدة البيانات والـ API الخارجي — يعرض جميع البلاغات بكل الحالات مع بيانات المالك.
         </p>
       </div>
 
       {/* Search input */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text" inputMode="numeric" dir="ltr"
-              className="w-full border border-gray-200 rounded-xl pr-10 pl-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500 tracking-widest"
-              placeholder="أدخل رقم IMEI (14–16 رقمًا)"
-              value={imei} maxLength={16}
-              onChange={e => { setImei(e.target.value.replace(/\D/g, '')); setError(''); }}
-              onKeyDown={e => e.key === 'Enter' && doSearch()}
-            />
+      <section className="surface-card overflow-hidden">
+        <div className="flex items-center gap-3 border-b border-[#e7e4dc] bg-[#f5f3ee] px-5 py-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-800">
+            <Search className="h-5 w-5" />
           </div>
-          <button onClick={() => doSearch()} disabled={loading || !imei}
-            className="btn-primary px-6 py-3 text-sm font-medium disabled:opacity-50 flex items-center gap-2">
-            {loading ? <Spinner size={18} /> : <Search className="w-4 h-4" />}
-            بحث
-          </button>
+          <div>
+            <h2 className="font-bold text-gray-900">استعلام عن جهاز</h2>
+            <p className="mt-0.5 text-xs text-gray-500">أدخل رقم IMEI كاملاً لعرض معلومات الجهاز والبلاغات المرتبطة به.</p>
+          </div>
         </div>
-        {error && (
-          <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
-            <X className="w-4 h-4 flex-shrink-0" /> {error}
-          </p>
-        )}
-        {/* Info chips */}
-        <div className="flex flex-wrap gap-2 mt-3">
-          {[
-            { icon: Database, label: 'جميع البلاغات (كل الحالات)' },
-            { icon: Wifi,     label: 'بيانات الجهاز من DB + API' },
-            { icon: Shield,   label: 'IMEI كامل بدون إخفاء' },
-          ].map(({ icon: Icon, label }) => (
-            <span key={label} className="inline-flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full">
-              <Icon className="w-3.5 h-3.5" /> {label}
-            </span>
-          ))}
+        <div className="p-5">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative min-w-0 flex-1">
+              <Search className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text" inputMode="numeric" dir="ltr"
+                className="input w-full pl-4 pr-11 text-left font-mono tracking-widest"
+                placeholder="أدخل رقم IMEI (14–16 رقمًا)"
+                aria-label="رقم IMEI للبحث"
+                value={imei} maxLength={16}
+                onChange={e => { setImei(e.target.value.replace(/\D/g, '')); setError(''); }}
+                onKeyDown={e => e.key === 'Enter' && doSearch()}
+              />
+            </div>
+            <button onClick={() => doSearch()} disabled={loading || !imei}
+              className="btn-primary flex w-full items-center justify-center gap-2 px-7 py-3 text-sm font-semibold disabled:opacity-50 sm:w-auto">
+              {loading ? <Spinner size={18} /> : <Search className="h-4 w-4" />}
+              بحث
+            </button>
+          </div>
+          {error && (
+            <p role="alert" className="mt-3 flex items-center gap-1.5 text-sm text-red-600">
+              <X className="h-4 w-4 flex-shrink-0" /> {error}
+            </p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              { icon: Database, label: 'البلاغات بجميع الحالات' },
+              { icon: Wifi,     label: 'مصادر بيانات متعددة' },
+              { icon: Shield,   label: 'عرض إداري كامل' },
+            ].map(({ icon: Icon, label }) => (
+              <span key={label} className="inline-flex items-center gap-1.5 rounded-lg border border-[#e7e4dc] bg-white px-3 py-1.5 text-xs text-gray-600">
+                <Icon className="h-3.5 w-3.5 text-primary-700" /> {label}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       {loading && <div className="flex justify-center py-12"><Spinner size={40} /></div>}
 
       {/* Result card */}
       {!loading && result && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <section className="surface-card overflow-hidden">
           {/* IMEI header */}
-          <div className="flex items-start justify-between flex-wrap gap-3 pb-4 border-b border-gray-100 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e7e4dc] bg-[#f5f3ee] px-5 py-4">
             <div>
-              <p className="text-xs text-gray-400 mb-1">رقم IMEI</p>
-              <p className="font-mono text-lg font-bold text-gray-900 tracking-widest" dir="ltr">
+              <p className="mb-1 text-xs text-gray-500">نتيجة الاستعلام</p>
+              <p className="font-mono text-lg font-bold tracking-widest text-gray-900" dir="ltr">
                 {result.imei}
               </p>
             </div>
             <OverallBadge reports={result.reports} />
           </div>
 
-          <DeviceInfoCard
-            info={result.device_info}
-            source={result.lookup_source}
-            dbCache={result.db_cache}
-          />
-          <AllReportsCard reports={result.reports} />
+          <div className="p-5">
+            <DeviceInfoCard
+              info={result.device_info}
+              source={result.lookup_source}
+              dbCache={result.db_cache}
+            />
+            <AllReportsCard reports={result.reports} />
+          </div>
+        </section>
+      )}
+
+      {!loading && !result && !error && (
+        <div className="surface-card px-5 py-10 text-center sm:py-14">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+            <Smartphone className="h-7 w-7" />
+          </div>
+          <h2 className="font-bold text-gray-800">ابدأ بالبحث عن جهاز</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-gray-500">
+            ستظهر هنا تفاصيل الجهاز وملخص البلاغات بعد إدخال رقم IMEI صحيح.
+          </p>
         </div>
       )}
 
       {/* Recent searches */}
       {history.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="surface-card p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
               <Clock className="w-4 h-4 text-gray-400" /> آخر عمليات البحث
@@ -273,8 +299,8 @@ export default function AdminSearch() {
           <div className="space-y-2">
             {history.map((item, i) => (
               <button key={i} onClick={() => { setImei(item.imei); doSearch(item.imei); }}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-50 text-sm">
-                <div className="flex items-center gap-3">
+                className="flex w-full flex-wrap items-center justify-between gap-2 rounded-xl border border-[#e7e4dc] px-4 py-3 text-sm transition-colors hover:bg-[#f7f6f2]">
+                <div className="flex min-w-0 items-center gap-3">
                   <Smartphone className="w-4 h-4 text-gray-300 flex-shrink-0" />
                   <span className="font-mono text-gray-700 tracking-widest" dir="ltr">{item.imei}</span>
                 </div>

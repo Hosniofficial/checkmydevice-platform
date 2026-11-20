@@ -29,7 +29,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ── Navbar ─────────────────────────────────────────────── */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <nav className="sticky top-0 z-50 border-b border-[#e7e4dc] bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
 
@@ -72,6 +72,7 @@ export default function Layout() {
                   <div className="relative">
                     <button
                       onClick={() => setUserMenuOpen(p => !p)}
+                      aria-expanded={userMenuOpen}
                       className="flex items-center gap-2 text-sm text-gray-700 hover:text-primary-700 p-2 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                       <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
@@ -125,31 +126,37 @@ export default function Layout() {
             </div>
 
             {/* Mobile menu button */}
-            <button className="md:hidden p-2 text-gray-600 rounded-xl hover:bg-gray-100"
-              onClick={() => setMenuOpen(!menuOpen)}>
+            <button
+              className="md:hidden p-2 text-gray-600 rounded-xl hover:bg-gray-100"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+              aria-expanded={menuOpen}>
               {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
           {/* Mobile menu */}
           {menuOpen && (
-            <div className="md:hidden pb-4 border-t border-gray-100 mt-2 space-y-1 fade-in">
-              {NAV_LINKS.map(({ to, label }) => (
+            <div id="mobile-navigation" role="navigation" aria-label="القائمة الرئيسية"
+              className="fade-in mb-3 mt-2 space-y-1 rounded-2xl border border-[#e7e4dc] bg-[#f7f6f2] p-2 shadow-sm md:hidden">
+              {NAV_LINKS.map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to}
-                  className="block py-2.5 px-3 text-sm text-gray-700 rounded-xl hover:bg-gray-50"
+                  className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors
+                    ${location.pathname === to ? 'bg-white font-semibold text-primary-700' : 'text-gray-700 hover:bg-white hover:text-primary-700'}`}
                   onClick={() => setMenuOpen(false)}>
+                  {Icon && <Icon className="h-4 w-4 text-primary-700" aria-hidden="true" />}
                   {label}
                 </Link>
               ))}
-              <div className="border-t border-gray-100 pt-2 mt-2">
+              <div className="mt-2 border-t border-[#e7e4dc] pt-2">
                 {user ? (
                   <>
-                    <Link to="/dashboard" className="block py-2.5 px-3 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setMenuOpen(false)}>لوحة التحكم</Link>
-                    <Link to="/reports"   className="block py-2.5 px-3 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setMenuOpen(false)}>بلاغاتي</Link>
-                    <Link to="/profile"   className="block py-2.5 px-3 text-sm text-gray-700 rounded-xl hover:bg-gray-50" onClick={() => setMenuOpen(false)}>الإعدادات</Link>
-                    {isAdmin() && <Link to="/admin" className="block py-2.5 px-3 text-sm text-red-600 rounded-xl hover:bg-red-50" onClick={() => setMenuOpen(false)}>لوحة الإدارة</Link>}
+                    <Link to="/dashboard" className="block min-h-11 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-white" onClick={() => setMenuOpen(false)}>لوحة التحكم</Link>
+                    <Link to="/reports" className="block min-h-11 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-white" onClick={() => setMenuOpen(false)}>بلاغاتي</Link>
+                    <Link to="/profile" className="block min-h-11 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-white" onClick={() => setMenuOpen(false)}>الإعدادات</Link>
+                    {isAdmin() && <Link to="/admin" className="block min-h-11 rounded-xl px-3 py-2.5 text-sm text-primary-700 transition-colors hover:bg-white" onClick={() => setMenuOpen(false)}>لوحة الإدارة</Link>}
                     <button onClick={() => { handleLogout(); setMenuOpen(false); }}
-                      className="w-full text-right py-2.5 px-3 text-sm text-red-600 rounded-xl hover:bg-red-50 flex items-center gap-2">
+                      className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 py-2.5 text-right text-sm text-red-600 transition-colors hover:bg-red-50">
                       <LogOut className="w-4 h-4" /> تسجيل الخروج
                     </button>
                   </>
@@ -166,35 +173,35 @@ export default function Layout() {
       </nav>
 
       {/* ── Page content ───────────────────────────────────────── */}
-      <main className="flex-1">
+      <main className="flex-1 bg-[#f7f6f2]">
         <Outlet />
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="bg-primary-700 text-white mt-16">
-        <div className="max-w-6xl mx-auto px-4 py-10">
+      <footer className="mt-16 border-t border-[#e7e4dc] bg-[#f0eee7] text-gray-800">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:py-12">
 
           {/* Main row: brand + 3 link columns */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
 
             {/* Brand */}
             <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <img src="/Logo.png" alt="CheckMyDevice" className="w-7 h-7 object-contain rounded-lg brightness-0 invert" />
-                <span className="font-bold text-lg">CheckMyDevice</span>
+              <div className="mb-3 flex items-center gap-2">
+                <img src="/Logo.png" alt="CheckMyDevice" className="h-7 w-7 rounded-lg object-contain" />
+                <span className="text-lg font-bold text-primary-900">CheckMyDevice</span>
               </div>
-              <p className="text-blue-200 text-sm leading-relaxed mb-3">
-                أول منصة عربية لفحص الأجهزة المحمولة والتحقق من حالتها قبل الشراء.
+              <p className="mb-3 text-sm leading-relaxed text-gray-600">
+                منصة عربية تساعدك على مراجعة معلومات الجهاز والبلاغات المتاحة قبل الشراء.
               </p>
               <a href="mailto:support@checkmydevice.online"
-                className="text-blue-300 text-xs hover:text-white transition-colors" dir="ltr">
+                className="text-xs text-primary-700 transition-colors hover:text-accent-500" dir="ltr">
                 support@checkmydevice.online
               </a>
             </div>
 
             {/* خدمات */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">الخدمات</h4>
+              <h4 className="mb-3 text-sm font-semibold text-primary-900">الخدمات</h4>
               <ul className="space-y-2">
                 {[
                   { to: '/search',      label: 'فحص جهاز' },
@@ -202,7 +209,7 @@ export default function Layout() {
                   { to: '/plans',       label: 'الخطط والأسعار' },
                 ].map(({ to, label }) => (
                   <li key={to}>
-                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                    <Link to={to} className="text-sm text-gray-600 transition-colors hover:text-primary-700">{label}</Link>
                   </li>
                 ))}
               </ul>
@@ -210,7 +217,7 @@ export default function Layout() {
 
             {/* الشركة */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">الشركة</h4>
+              <h4 className="mb-3 text-sm font-semibold text-primary-900">الشركة</h4>
               <ul className="space-y-2">
                 {[
                   { to: '/about',   label: 'من نحن' },
@@ -219,7 +226,7 @@ export default function Layout() {
                   { to: '/blog',    label: 'المدونة' },
                 ].map(({ to, label }) => (
                   <li key={to}>
-                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                    <Link to={to} className="text-sm text-gray-600 transition-colors hover:text-primary-700">{label}</Link>
                   </li>
                 ))}
               </ul>
@@ -227,14 +234,14 @@ export default function Layout() {
 
             {/* قانوني */}
             <div>
-              <h4 className="font-semibold mb-3 text-sm">قانوني</h4>
+              <h4 className="mb-3 text-sm font-semibold text-primary-900">قانوني</h4>
               <ul className="space-y-2">
                 {[
                   { to: '/privacy', label: 'سياسة الخصوصية' },
                   { to: '/terms',   label: 'شروط الاستخدام' },
                 ].map(({ to, label }) => (
                   <li key={to}>
-                    <Link to={to} className="text-blue-200 text-sm hover:text-white transition-colors">{label}</Link>
+                    <Link to={to} className="text-sm text-gray-600 transition-colors hover:text-primary-700">{label}</Link>
                   </li>
                 ))}
               </ul>
@@ -242,8 +249,8 @@ export default function Layout() {
           </div>
 
           {/* Blog strip — compact horizontal row */}
-          <div className="border-t border-blue-600/50 pt-6 mb-6">
-            <p className="text-xs text-blue-400 mb-3 font-medium">من المدونة</p>
+          <div className="mb-6 border-t border-[#dedbd2] pt-6">
+            <p className="mb-3 text-xs font-medium text-accent-500">من المدونة</p>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {[
                 { to: '/blog/free-imei-check',            label: 'فحص IMEI مجاني' },
@@ -253,7 +260,7 @@ export default function Layout() {
                 { to: '/blog/how-to-report-stolen-phone', label: 'كيف أبلغ عن هاتف مسروق؟' },
               ].map(({ to, label }) => (
                 <Link key={to} to={to}
-                  className="text-blue-300 text-xs hover:text-white transition-colors">
+                  className="text-xs text-gray-600 transition-colors hover:text-primary-700">
                   {label}
                 </Link>
               ))}
@@ -261,12 +268,12 @@ export default function Layout() {
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-blue-600 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-blue-300 text-xs">
+          <div className="flex flex-col items-center justify-between gap-3 border-t border-[#dedbd2] pt-5 text-xs text-gray-500 sm:flex-row">
             <span>© 2026 CheckMyDevice — جميع الحقوق محفوظة</span>
             <div className="flex gap-4">
-              <Link to="/privacy" className="hover:text-white transition-colors">الخصوصية</Link>
-              <Link to="/terms"   className="hover:text-white transition-colors">الشروط</Link>
-              <Link to="/contact" className="hover:text-white transition-colors">تواصل</Link>
+              <Link to="/privacy" className="transition-colors hover:text-primary-700">الخصوصية</Link>
+              <Link to="/terms"   className="transition-colors hover:text-primary-700">الشروط</Link>
+              <Link to="/contact" className="transition-colors hover:text-primary-700">تواصل</Link>
             </div>
           </div>
 
