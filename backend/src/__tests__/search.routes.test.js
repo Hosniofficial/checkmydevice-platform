@@ -63,8 +63,10 @@ describe('POST /search serial notifications', () => {
       contact_email: null,
     };
 
-    queryMock.mockImplementation(async (sql) => {
-      if (sql.includes('serial_number ILIKE')) return { rows: [report] };
+    queryMock.mockImplementation(async (sql, params = []) => {
+      if (sql.includes('LOWER(serial_number)=LOWER($1)')) {
+        return { rows: params[0] === 'SERIAL-1234' ? [report] : [] };
+      }
       if (sql.includes('INSERT INTO search_logs')) return { rows: [] };
       if (sql.includes('WHERE dr.id=$1')) return { rows: [owner] };
       throw new Error(`Unexpected database query in test: ${sql}`);
@@ -103,5 +105,41 @@ describe('POST /search serial notifications', () => {
     );
     expect(queryMock.mock.calls.find(([sql]) => sql.includes('WHERE dr.id=$1'))[1])
       .toEqual(['report-1']);
+    const serialSearch = queryMock.mock.calls.find(([sql]) => sql.includes('LOWER(serial_number)'));
+    expect(serialSearch[1]).toEqual(['SERIAL-1234']);
+  });
+
+  it('treats serial wildcard characters as literal input', async () => {
+    queryMock.mockImplementation(async (sql, params = []) => {
+      if (sql.includes('LOWER(serial_number)=LOWER($1)')) {
+        expect(params).toEqual(['%']);
+        return { rows: [] };
+      }
+      if (sql.includes('INSERT INTO search_logs')) return { rows: [] };
+      throw new Error(`Unexpected database query in test: ${sql}`);
+    });
+
+    const res = {
+      statusCode: 200,
+      body: null,
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(body) {
+        this.body = body;
+        return this;
+      },
+    };
+
+    await searchHandler({
+      body: { query: '%', query_type: 'serial' },
+      headers: { 'x-forwarded-for': '203.0.113.1', 'user-agent': 'test' },
+      ip: '203.0.113.1',
+      searchLimit: 5,
+    }, res);
+
+    expect(res.body.data.status).toBe('clean');
+    expect(sendDeviceSearchedAlertMock).not.toHaveBeenCalled();
   });
 });

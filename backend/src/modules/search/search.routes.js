@@ -82,7 +82,7 @@ router.post('/', optionalAuth, searchRateLimit, async (req, res) => {
                 incident_date,created_at,approved_at,contact_whatsapp,contact_email,
                 contact_phone,reward_offered,reward_amount,reward_currency
          FROM devices_reports
-         WHERE serial_number ILIKE $1 AND status='approved'
+         WHERE LOWER(serial_number)=LOWER($1) AND status='approved'
          ORDER BY created_at DESC`,
         [trimmed]
       );
