@@ -10,7 +10,7 @@ export async function authenticate(req, res, next) {
   try {
     const token = auth.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const result = await query('SELECT id,email,role,status FROM users WHERE id=$1 AND deleted_at IS NULL', [decoded.id]);
+    const result = await query('SELECT id,email,role,status,email_verified FROM users WHERE id=$1 AND deleted_at IS NULL', [decoded.id]);
     if (!result.rows.length) return res.status(401).json({ success: false, error: { code: 'USER_NOT_FOUND' } });
     const user = result.rows[0];
     if (user.status === 'suspended') return res.status(403).json({ success: false, error: { code: 'ACCOUNT_SUSPENDED', message_ar: 'حسابك موقوف' } });
