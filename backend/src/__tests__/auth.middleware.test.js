@@ -53,7 +53,7 @@ describe('authenticate()', () => {
     expect(res.statusCode).toBe(200);
   });
 
-  it('blocks an unverified user with the verification error', async () => {
+  it('allows an unverified user to use authenticated routes', async () => {
     queryMock.mockResolvedValue({
       rows: [{
         id: 'user-1',
@@ -69,8 +69,8 @@ describe('authenticate()', () => {
 
     await authenticate(req, res, next);
 
-    expect(next).not.toHaveBeenCalled();
-    expect(res.statusCode).toBe(403);
-    expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(req.user.email_verified).toBe(false);
+    expect(res.statusCode).toBe(200);
   });
 });

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, FileText, Users, LogOut, Menu, X, ChevronRight, Settings, Search, ClipboardList } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store.js';
+import EmailVerificationNotice from './EmailVerificationNotice.jsx';
 
 const NAV = [
   { to: '/admin',            label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -140,6 +141,7 @@ export default function AdminLayout() {
 
       {/* Main */}
       <main className={`min-w-0 min-h-screen md:transition-[margin] md:duration-300 ${collapsed ? 'md:mr-16' : 'md:mr-64'}`}>
+        <EmailVerificationNotice />
         <div className="p-4 sm:p-6 lg:p-8">
           <Outlet/>
         </div>

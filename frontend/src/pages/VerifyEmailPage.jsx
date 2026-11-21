@@ -13,7 +13,10 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!token) { setStatus('error'); return; }
     api.get(`/auth/verify-email/${token}`)
-      .then(() => setStatus('success'))
+      .then(async () => {
+        setStatus('success');
+        if (user) await useAuthStore.getState().refreshUser();
+      })
       .catch(err => {
         const code = err.response?.data?.error?.code;
         // Token used before = already verified (user sees ✓ in profile)

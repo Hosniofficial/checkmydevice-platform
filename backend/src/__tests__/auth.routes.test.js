@@ -40,6 +40,8 @@ describe('POST /auth/login', () => {
   beforeEach(() => {
     queryMock.mockReset();
     compareMock.mockReset();
+    process.env.JWT_SECRET = 'test-jwt-secret';
+    process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
   });
 
   it('does not reveal an unverified account when the password is wrong', async () => {
@@ -64,7 +66,7 @@ describe('POST /auth/login', () => {
     expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
   });
 
-  it('asks a correctly authenticated unverified user to verify their email', async () => {
+  it('allows a correctly authenticated unverified user to log in', async () => {
     queryMock.mockResolvedValue({
       rows: [{
         id: 'user-1',
@@ -82,7 +84,8 @@ describe('POST /auth/login', () => {
       ip: '127.0.0.1',
     }, res);
 
-    expect(res.statusCode).toBe(403);
-    expect(res.body.error.code).toBe('EMAIL_NOT_VERIFIED');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.user.email_verified).toBe(false);
+    expect(res.body.data.access_token).toBeTruthy();
   });
 });

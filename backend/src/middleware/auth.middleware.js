@@ -14,7 +14,6 @@ export async function authenticate(req, res, next) {
     if (!result.rows.length) return res.status(401).json({ success: false, error: { code: 'USER_NOT_FOUND' } });
     const user = result.rows[0];
     if (user.status === 'suspended') return res.status(403).json({ success: false, error: { code: 'ACCOUNT_SUSPENDED', message_ar: 'حسابك موقوف' } });
-    if (!user.email_verified) return res.status(403).json({ success: false, error: { code: 'EMAIL_NOT_VERIFIED', message_ar: 'يرجى تفعيل بريدك الإلكتروني أولاً' } });
     req.user = user;
     next();
   } catch {

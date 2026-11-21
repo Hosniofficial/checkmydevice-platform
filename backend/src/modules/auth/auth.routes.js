@@ -80,7 +80,6 @@ router.post('/login', async (req, res) => {
   if (!valid) return err(res, 'INVALID_CREDENTIALS', 'البريد الإلكتروني أو كلمة المرور غير صحيحة', '', 401);
 
   if (user.status === 'suspended') return err(res, 'ACCOUNT_SUSPENDED', 'حسابك موقوف، تواصل مع الدعم', '', 403);
-  if (!user.email_verified) return err(res, 'EMAIL_NOT_VERIFIED', 'يرجى تفعيل بريدك الإلكتروني أولاً', '', 403);
 
   await query('UPDATE users SET last_login_at=NOW() WHERE id=$1', [user.id]);
   await auditLog({ userId: user.id, action: 'user.login', entityType: 'user', entityId: user.id, ip: req.ip });

@@ -5,6 +5,7 @@ import {
   Menu, X, ChevronDown, Settings, FileText,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store.js';
+import EmailVerificationNotice from './EmailVerificationNotice.jsx';
 
 const NAV_LINKS = [
   { to: '/search', label: 'فحص جهاز', icon: Search },
@@ -174,6 +175,7 @@ export default function Layout() {
 
       {/* ── Page content ───────────────────────────────────────── */}
       <main className="flex-1 bg-[#f7f6f2]">
+        <EmailVerificationNotice />
         <Outlet />
       </main>
 

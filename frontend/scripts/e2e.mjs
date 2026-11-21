@@ -152,6 +152,7 @@ try {
   const searchPayloads = [];
   let adminSearchRequests = 0;
   let loginRequests = 0;
+  let verificationResends = 0;
   let registerRequests = 0;
   let profileUpdates = 0;
   let passwordChanges = 0;
@@ -186,7 +187,7 @@ try {
           full_name: 'حساب تجريبي',
           email: credentials.email,
           role: 'user',
-          email_verified: true,
+          email_verified: false,
           country_code: 'EG',
         };
         data.data = {
@@ -195,6 +196,9 @@ try {
           user: sessionUser,
         };
       }
+    } else if (url.pathname === '/api/auth/resend-verification' && request.method() === 'POST') {
+      verificationResends++;
+      data.data = { message_ar: 'تم إرسال رابط التفعيل إلى بريدك الإلكتروني.' };
     } else if (url.pathname === '/api/auth/register' && request.method() === 'POST') {
       registerRequests++;
       data.data = { message_ar: 'تم إنشاء الحساب التجريبي' };
@@ -633,6 +637,11 @@ try {
   await page.click('#root button[type="submit"]');
   await page.waitForFunction(() => location.pathname === '/dashboard' && document.body.innerText.includes('حساب تجريبي'));
   assert.equal(loginRequests, 2, 'Successful login should use the mocked API once');
+  await page.waitForFunction(() => document.body.innerText.includes('حسابك يعمل، لكن بريدك الإلكتروني لم يُفعّل بعد.'));
+  assert.equal(await page.$eval('[role="status"] button', (button) => button.textContent.trim()), 'إعادة إرسال رابط التفعيل');
+  await page.click('[role="status"] button');
+  await page.waitForFunction(() => document.body.innerText.includes('تم إرسال رابط التفعيل إلى بريدك الإلكتروني.'));
+  assert.equal(verificationResends, 1, 'Unverified users should be able to request a new verification email');
 
   await page.goto(`${baseUrl}/profile`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.querySelector('input[name="full_name"]'));

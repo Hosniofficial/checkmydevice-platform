@@ -55,8 +55,7 @@ export default function RegisterPage() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">تحقق من بريدك الإلكتروني</h2>
         <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-          أرسلنا رابط تفعيل إلى بريدك الإلكتروني.<br />
-          اضغط على الرابط لإكمال التسجيل والبدء فوراً.
+          أرسلنا رابط تفعيل إلى بريدك الإلكتروني. يمكنك استخدام حسابك الآن، وننصحك بتفعيل البريد لحمايته واستعادة الوصول إليه.
         </p>
         <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-right text-xs text-amber-700">
           <span className="mt-0.5 flex-shrink-0">💡</span>
