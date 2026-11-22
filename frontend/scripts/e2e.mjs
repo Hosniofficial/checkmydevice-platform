@@ -282,6 +282,10 @@ try {
   await page.goto(baseUrl, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.getElementById('home-imei'));
   await page.waitForFunction(() => document.querySelector('#root img[src="/home-imei-check.webp"]')?.naturalWidth === 960);
+  assert(
+    (await page.$eval('#root', (root) => root.innerText)).includes('افحص بوعي… واشتري بثقة'),
+    'Homepage should use the updated confidence tagline',
+  );
   const heroBackgroundAlpha = await page.$eval('#root img[src="/home-imei-check.webp"]', (image) => {
     const canvas = document.createElement('canvas');
     canvas.width = image.naturalWidth;
@@ -372,11 +376,21 @@ try {
   const resultText = await page.$eval('#root', (root) => root.innerText);
   assert(!resultText.includes('جهاز نظيف'), 'No-report result must not claim the device is clean');
   assert.equal(resultText.split('لا توجد بلاغات مسجلة').length - 1, 1, 'No-report status should appear once');
+  assert(resultText.includes('معلومات الجهاز'), 'Search result should present device details in a labeled section');
+  assert(resultText.includes('نتيجة فحص Apple'), 'Search result should identify the checked device');
+  assert(await page.$('[aria-label="حالة الجهاز"]'), 'Search result should expose a distinct device status panel');
   assert(
     resultText.includes(cleanResultDisclaimer),
     'Search results should show the same caution as the free IMEI article',
   );
   assert(!resultText.includes('الكود التقني'), 'Duplicate model code should be hidden');
+  await page.setViewport({ width: 1280, height: 844 });
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth),
+    false,
+    'Search result should not overflow horizontally on a desktop viewport',
+  );
+  await page.setViewport({ width: 390, height: 844 });
   console.log('PASS search results use cautious wording and omit duplicate model codes');
 
   await page.goto(`${baseUrl}/search`, { waitUntil: 'networkidle0' });

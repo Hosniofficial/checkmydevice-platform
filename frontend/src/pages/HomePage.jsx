@@ -61,7 +61,7 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <p className="mb-5 flex items-center gap-3 text-sm font-semibold text-gray-600">
               <span className="h-px w-8 bg-accent-500" aria-hidden="true" />
-              فحص واعٍ قبل الشراء
+              افحص بوعي… واشتري بثقة
             </p>
 
             <h1 className="text-4xl font-bold leading-[1.25] tracking-tight text-primary-900 sm:text-5xl">

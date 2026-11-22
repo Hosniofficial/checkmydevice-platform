@@ -72,6 +72,8 @@ const STATUS_CONFIG = {
     cardBg:    'bg-[#f3f6f8]',
     border:    'border-slate-200',
     badgeBg:   'bg-primary-700',
+    statusBg:  'bg-blue-50',
+    statusText:'text-primary-900',
     icon:      Info,
     label:     'لا توجد بلاغات مسجلة',
     desc:      'نتيجة "نظيف" لا تعني 100% أن الجهاز غير مسروق — بل تعني أنه غير مُبلَّغ عنه في قاعدة بياناتنا. استخدمها كمرجع إضافي.',
@@ -81,6 +83,8 @@ const STATUS_CONFIG = {
     cardBg:    'bg-red-50/70',
     border:    'border-red-200',
     badgeBg:   'bg-red-500',
+    statusBg:  'bg-red-50',
+    statusText:'text-red-800',
     icon:      ShieldAlert,
     label:     'جهاز مسروق',
     desc:      'تم الإبلاغ عن هذا الجهاز كمسروق',
@@ -90,6 +94,8 @@ const STATUS_CONFIG = {
     cardBg:    'bg-amber-50/70',
     border:    'border-amber-200',
     badgeBg:   'bg-amber-500',
+    statusBg:  'bg-amber-50',
+    statusText:'text-amber-800',
     icon:      HelpCircle,
     label:     'جهاز مفقود',
     desc:      'تم الإبلاغ عن هذا الجهاز كمفقود',
@@ -108,7 +114,14 @@ function QuotaBar({ quota }) {
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> حصة البحث اليوم</span>
         <span>{quota.remaining} متبقٍ من {quota.limit}</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-[#eeece5]">
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-[#eeece5]"
+        role="progressbar"
+        aria-label="استخدام حصة البحث"
+        aria-valuemin={0}
+        aria-valuemax={quota.limit}
+        aria-valuenow={Math.min(quota.used, quota.limit)}
+      >
         <div className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
@@ -140,39 +153,44 @@ function DeviceResultCard({ result }) {
   ].filter(x => x.value);
 
   return (
-    <div className={`surface-card overflow-hidden border ${cfg.border} fade-in`} aria-live="polite">
-
-      <div className="flex items-center justify-between bg-primary-700 px-5 py-3">
-        <div className="flex items-center gap-2">
-          <StatusIcon className="w-5 h-5 text-white/90" />
-          <span className="text-white font-bold text-base">{info?.brand || 'جهاز'}</span>
+    <article className={`surface-card overflow-hidden border ${cfg.border} fade-in`} aria-live="polite">
+      <header className="flex flex-col gap-3 border-b border-[#e7e4dc] bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-accent-500">CheckMyDevice</p>
+            <h2 className="mt-0.5 truncate text-base font-bold text-gray-900 sm:text-lg">
+              نتيجة فحص {info?.brand || 'الجهاز'}
+            </h2>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-white/80">
-          <img src="/Logo.png" alt="CheckMyDevice" className="w-4 h-4 object-contain brightness-0 invert" />
-          <span className="text-xs font-medium">نتيجة الفحص</span>
-        </div>
-      </div>
+        <p className="flex items-center gap-1.5 text-xs text-gray-500 sm:justify-end">
+          <Clock className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+          تم التحقق في {formatDateTime(result.checked_at)}
+        </p>
+      </header>
 
-      <div className={`${cfg.cardBg} grid grid-cols-[32%_1fr] sm:grid-cols-[38%_1fr]`}>
-        <div className="flex min-w-0 items-center justify-center px-2 py-4 sm:px-5">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
+        <div className={`flex min-h-56 min-w-0 flex-col items-center justify-center gap-3 px-5 py-6 sm:min-h-72 sm:py-8 ${cfg.cardBg}`}>
           <img
             src={brandImg}
             alt={info?.brand || 'جهاز'}
-            className="h-[160px] w-full max-w-[170px] object-contain sm:h-[220px]"
+            className="h-40 w-full max-w-48 object-contain sm:h-52"
             onError={e => { e.target.src = '/brands/android.png'; }}
             loading="lazy"
           />
+          <span className="rounded-full border border-white/80 bg-white/80 px-3 py-1 text-xs font-semibold text-gray-600">
+            {info?.brand || 'جهاز'}{info?.model ? ` · ${info.model}` : ''}
+          </span>
         </div>
 
-        <div className="flex min-w-0 flex-col justify-center gap-4 p-4 sm:p-6">
-          <span className={`inline-flex w-fit items-center gap-1.5 ${cfg.badgeBg} rounded-full px-3 py-1.5 text-xs font-bold text-white`}>
-            <StatusIcon className="w-3.5 h-3.5" />
-            {cfg.label}
-          </span>
-
+        <section className="flex min-w-0 flex-col justify-center p-5 sm:p-7" aria-labelledby="device-info-title">
+          <h3 id="device-info-title" className="mb-5 text-sm font-bold text-gray-900">معلومات الجهاز</h3>
           <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
             {specs.map(({ label, value, mono }) => (
-              <div key={label} className="min-w-0 border-b border-[#dedbd3] pb-2">
+              <div key={label} className="min-w-0 rounded-xl border border-[#e7e4dc] bg-[#fcfbf8] px-3 py-2.5">
                 <span className="block text-xs text-gray-500">{label}</span>
                 <span className={`mt-1 block break-words text-sm font-semibold text-gray-900 ${mono ? 'font-mono text-xs tracking-wide' : ''}`} dir="auto">
                   {value}
@@ -180,28 +198,28 @@ function DeviceResultCard({ result }) {
               </div>
             ))}
           </div>
+        </section>
+      </div>
 
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-            <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
-            تم التحقق في {formatDateTime(result.checked_at)}
+      <section className={`flex items-start gap-3 border-t px-4 py-4 sm:px-6 sm:py-5 ${cfg.border} ${cfg.statusBg}`} aria-label="حالة الجهاز">
+        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white ${cfg.textColor}`}>
+          <StatusIcon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <p className={`text-sm font-bold ${cfg.statusText}`}>{cfg.label}</p>
+          <p className={`mt-1 text-sm leading-6 ${cfg.textColor}`}>
+            {result.status === 'clean' ? (result.disclaimer_ar || cfg.desc) : cfg.desc}
           </p>
         </div>
-      </div>
-
-      <div className={`flex items-start gap-2.5 border-t px-5 py-4 ${cfg.border} ${result.status === 'clean' ? 'bg-white' : cfg.cardBg}`}>
-        <StatusIcon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${cfg.textColor}`} />
-        <p className={`text-sm leading-6 ${cfg.textColor}`}>
-          {result.status === 'clean' ? (result.disclaimer_ar || cfg.desc) : cfg.desc}
-        </p>
-      </div>
+      </section>
 
       {/* ── Reports section ───────────────────────────────────── */}
       {result.reports?.length > 0 && (
-        <div className="space-y-3 border-t border-[#e7e4dc] bg-white px-5 pb-5 pt-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">تفاصيل البلاغ</p>
+        <section className="space-y-3 border-t border-[#e7e4dc] bg-white p-4 sm:p-6" aria-labelledby="device-reports-title">
+          <h3 id="device-reports-title" className="text-sm font-bold text-gray-900">البلاغات المرتبطة بالجهاز</h3>
           {result.reports.map((r, i) => (
-            <div key={i} className="rounded-2xl border border-[#e7e4dc] bg-[#f7f6f2] p-4">
-              <div className="flex items-center justify-between mb-3">
+            <article key={i} className="rounded-2xl border border-[#e7e4dc] bg-[#fcfbf8] p-4 sm:p-5">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full
                   ${r.report_type === 'stolen' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
                   {r.report_type === 'stolen' ? '🔴 مسروق' : '🟡 مفقود'}
@@ -236,8 +254,8 @@ function DeviceResultCard({ result }) {
 
               {r.contact_available && (
                 <div className="border-t border-[#e7e4dc] pt-3">
-                  <p className="text-xs text-gray-500 mb-2">تواصل مع صاحب الجهاز:</p>
-                  <div className="flex gap-2 flex-wrap">
+                  <p className="mb-2 text-xs font-semibold text-gray-700">وسائل التواصل المتاحة</p>
+                  <div className="flex flex-wrap gap-2">
                     {r.whatsapp && (
                       <a href={`https://wa.me/${r.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
@@ -259,12 +277,12 @@ function DeviceResultCard({ result }) {
                   </div>
                 </div>
               )}
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
       )}
 
-    </div>
+    </article>
   );
 }
 
@@ -335,31 +353,41 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#f7f6f2] px-4 py-8 sm:py-12">
+    <div className="min-h-full bg-[#f7f6f2] px-4 py-8 sm:py-10">
       <SEOHead page="search" />
-      <div className="mx-auto max-w-3xl">
-
-        <div className="overflow-hidden rounded-3xl bg-primary-900 px-5 py-7 text-white sm:px-8 sm:py-9">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-blue-200">التحقق قبل الشراء</p>
-              <h1 className="mt-2 text-3xl font-bold tracking-tight">راجع حالة الجهاز</h1>
-              <p className="mt-2 max-w-xl text-sm leading-7 text-blue-100">
-                ابحث برقم IMEI أو الرقم التسلسلي، ثم راجع المعلومات والبلاغات المتاحة.
+      <div className="mx-auto max-w-5xl">
+        <div className="relative mb-7 overflow-hidden rounded-3xl bg-gradient-to-l from-[#173e75] to-[#2d619f] p-5 text-white shadow-sm sm:mb-8 sm:p-8">
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold text-blue-100">التحقق قبل الشراء</p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">راجع حالة الجهاز قبل الشراء</h1>
+              <p className="mt-2 text-sm leading-7 text-blue-100 sm:text-base">
+                افحص رقم IMEI أو الرقم التسلسلي، وراجع معلومات الجهاز والبلاغات المتاحة قبل اتخاذ قرارك.
               </p>
             </div>
-            <div className="hidden h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:flex">
-              <ShieldCheck className="h-7 w-7 text-blue-100" />
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/10 sm:h-14 sm:w-14 sm:rounded-2xl">
+              <ShieldCheck className="h-5 w-5 text-blue-100 sm:h-7 sm:w-7" aria-hidden="true" />
             </div>
           </div>
+          <div aria-hidden="true" className="absolute -left-10 -top-20 h-56 w-56 rounded-full border-[28px] border-white/5" />
         </div>
 
-        <div className="relative mx-1 -mt-4 mb-6 rounded-2xl border border-[#e7e4dc] bg-white p-4 shadow-md sm:p-5">
-          <div className="mb-4 flex gap-1 rounded-xl bg-[#f0eee7] p-1">
+        <section className="surface-card mb-6 p-4 sm:p-6" aria-label="فحص رقم الجهاز">
+          <div className="mb-5 flex items-start gap-3">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+              <Search className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="font-bold text-gray-900">ابدأ الفحص</h2>
+              <p className="mt-1 text-xs leading-5 text-gray-500">اختر نوع الرقم ثم أدخله لعرض المعلومات والبلاغات المسجلة.</p>
+            </div>
+          </div>
+
+          <div className="mb-5 flex gap-1 rounded-xl bg-[#f0eee7] p-1">
             {[{ v: 'imei', l: 'رقم IMEI' }, { v: 'serial', l: 'الرقم التسلسلي' }].map(({ v, l }) => (
               <button key={v} type="button" onClick={() => { setQueryType(v); setValidationError(''); }}
                 aria-pressed={queryType === v}
-                className={`min-h-10 flex-1 rounded-md px-3 text-sm font-medium transition-colors
+                className={`min-h-11 flex-1 rounded-lg px-3 text-sm font-semibold transition-colors
                   ${queryType === v ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-500 hover:text-gray-800'}`}>
                 {l}
               </button>
@@ -371,7 +399,7 @@ export default function SearchPage() {
               <label htmlFor="search-query" className="mb-2 block text-sm font-semibold text-gray-700">
                 {queryType === 'imei' ? 'أدخل رقم IMEI' : 'أدخل الرقم التسلسلي'}
               </label>
-              <Search className="absolute right-3 top-[42px] h-5 w-5 text-gray-400" aria-hidden="true" />
+              <Search className="absolute right-3 top-[42px] h-5 w-5 text-primary-500" aria-hidden="true" />
               <input
                 id="search-query"
                 type="text" inputMode={queryType === 'imei' ? 'numeric' : 'text'} dir="ltr"
@@ -384,7 +412,7 @@ export default function SearchPage() {
               />
             </div>
             <button type="submit" disabled={loading || !query.trim()}
-              className="btn-primary flex min-h-12 items-center justify-center gap-2 px-6 sm:mt-[30px] sm:flex-shrink-0">
+              className="btn-primary flex min-h-12 items-center justify-center gap-2 px-6 sm:mt-[30px] sm:min-w-36 sm:flex-shrink-0">
               {loading ? <Spinner size={20} /> : <Search className="h-5 w-5" />}
               افحص الرقم
             </button>
@@ -397,15 +425,16 @@ export default function SearchPage() {
           )}
 
           {queryType === 'imei' && (
-            <p className="mt-3 text-xs leading-5 text-gray-500">
-              للحصول على الرقم، اكتب <span className="mx-1 font-mono text-gray-700" dir="ltr">*#06#</span> على الجهاز.
+            <p className="mt-3 flex items-start gap-1.5 text-xs leading-5 text-gray-500">
+              <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary-500" aria-hidden="true" />
+              <span>للحصول على الرقم، اكتب <span className="mx-1 font-mono font-semibold text-gray-700" dir="ltr">*#06#</span> على الجهاز.</span>
             </p>
           )}
           <QuotaBar quota={quota} />
-        </div>
+        </section>
 
         {loading && (
-          <div role="status" className="surface-card py-14 text-center">
+          <div role="status" className="surface-card flex min-h-56 flex-col items-center justify-center py-14 text-center">
             <Spinner size={40} />
             <p className="mt-4 text-sm text-gray-600">جاري البحث في قاعدة البيانات...</p>
           </div>
@@ -414,16 +443,16 @@ export default function SearchPage() {
         {result && !loading && <DeviceResultCard result={result} />}
 
         {!loading && (
-          <div className="surface-card mt-6 flex flex-wrap items-center gap-4 p-4 sm:p-5">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-50">
-              <ShieldAlert className="h-5 w-5 text-primary-700" />
+          <div className="surface-card mt-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <ShieldAlert className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-gray-900">هل سُرق جهازك؟</p>
               <p className="mt-0.5 text-xs leading-5 text-gray-600">أبلغ عنه لمساعدة الآخرين على التحقق.</p>
             </div>
-            <Link to="/reports/new" className="btn-outline flex-shrink-0 px-4 py-2 text-sm">
-              إبلاغ
+            <Link to="/reports/new" className="btn-outline flex min-h-11 w-full items-center justify-center px-4 py-2 text-sm sm:w-auto">
+              تقديم بلاغ
             </Link>
           </div>
         )}
