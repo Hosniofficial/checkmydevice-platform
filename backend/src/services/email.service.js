@@ -17,10 +17,43 @@ const FROM = () => process.env.EMAIL_FROM || 'CheckMyDevice <onboarding@resend.d
 // ─── Safe send — catches Resend errors so callers don't crash ─────
 async function safeSend(payload) {
   try {
-    await getResend().emails.send(payload);
+    const result = await getResend().emails.send({
+      ...payload,
+      text: payload.text || toPlainText(payload.html),
+    });
+    if (result?.error) {
+      console.error('[Email] Failed to send "%s" to %s: %s',
+        payload.subject, payload.to, result.error.message || 'Unknown Resend error');
+      return false;
+    }
+    return true;
   } catch (err) {
     console.error('[Email] Failed to send "%s" to %s: %s', payload.subject, payload.to, err.message);
+    return false;
   }
+}
+
+function toPlainText(html) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|tr|h[1-6])>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+function frontendUrl(path) {
+  const base = (process.env.FRONTEND_URL || 'https://checkmydevice.online').replace(/\/+$/, '');
+  return `${base}/${path.replace(/^\/+/, '')}`;
 }
 
 // ─── Shared Styles ────────────────────────────────────────────────
@@ -30,62 +63,65 @@ async function safeSend(payload) {
 // to the system Arabic stack: Tahoma → Arial → sans-serif.
 const BASE_STYLE = `
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #F1F5F9; font-family: 'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif; direction: rtl; }
-    .wrapper { background: #F1F5F9; padding: 48px 16px; }
-    .card { background: #ffffff; border-radius: 16px; overflow: hidden; max-width: 580px; margin: 0 auto; border: 1px solid #E2E8F0; }
-    .header { padding: 36px 48px 32px; text-align: center; }
-    .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; color: #ffffff; margin: 0 0 4px; }
-    .tagline { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1px; text-transform: uppercase; margin: 0; }
-    .body { padding: 40px 48px 36px; }
-    .greeting { font-size: 17px; font-weight: 600; color: #0F172A; margin: 0 0 12px; }
-    .lead { font-size: 14px; color: #64748B; line-height: 1.85; margin: 0 0 28px; }
-    .divider { border: none; border-top: 1px solid #F1F5F9; margin: 0 0 28px; }
-    .btn-wrap { text-align: center; margin: 0 0 32px; }
-    .btn { display: inline-block; padding: 13px 36px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; letter-spacing: 0.1px; font-family: Tahoma, Arial, sans-serif; }
-    .info-card { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 20px 24px; margin: 0 0 20px; }
-    .card-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #94A3B8; margin: 0 0 14px; }
-    .card-row { padding: 7px 0; border-bottom: 1px solid #F1F5F9; }
-    .card-row:last-child { border-bottom: none; }
-    .card-key { font-size: 13px; color: #64748B; display: inline-block; width: 40%; }
-    .card-val { font-size: 13px; font-weight: 600; color: #0F172A; }
-    .card-mono { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 1.5px; background: #E2E8F0; padding: 3px 10px; border-radius: 5px; color: #334155; }
-    .notice { border-radius: 8px; padding: 13px 16px; font-size: 13px; line-height: 1.75; margin: 0 0 16px; }
-    .notice-icon { font-size: 14px; margin-left: 8px; }
-    .notice-warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #78350F; }
-    .notice-info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E3A8A; }
-    .notice-success { background: #F0FDF4; border: 1px solid #BBF7D0; color: #14532D; }
-    .link-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
-    .link-label { font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 5px; }
-    .link-url { font-size: 11px; color: #3B82F6; word-break: break-all; font-family: monospace; }
-    .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 20px; }
-    .stat-table { width: 100%; border-collapse: separate; border-spacing: 8px; margin: 0 0 20px; }
-    .stat-cell { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; width: 50%; vertical-align: top; }
-    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #94A3B8; margin: 0 0 4px; }
-    .stat-val { font-size: 15px; font-weight: 600; color: #0F172A; margin: 0; }
-    .ref-table { width: 100%; border-collapse: collapse; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; margin: 0 0 20px; }
-    .ref-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #94A3B8; margin: 0 0 5px; }
-    .ref-val { font-size: 22px; font-weight: 700; font-family: monospace; color: #0F172A; letter-spacing: 2px; margin: 0; }
-    .ref-status { font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 20px; }
-    .ref-ok { background: #DCFCE7; color: #14532D; }
-    .ref-no { background: #FEE2E2; color: #991B1B; }
-    .footer { background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 20px 48px; text-align: center; }
-    .footer p { font-size: 11px; color: #CBD5E1; margin: 0 0 3px; line-height: 1.7; }
-    .footer a { color: #94A3B8; text-decoration: none; }
-    .feature-table { width: 100%; border-collapse: collapse; margin: 0 0 24px; }
-    .feature-row td { padding: 11px 0; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
-    .feature-row:last-child td { border-bottom: none; }
-    .feature-icon-cell { width: 42px; padding-left: 12px; }
-    .feature-icon-wrap { width: 34px; height: 34px; border-radius: 8px; background: #EFF6FF; text-align: center; font-size: 16px; line-height: 34px; }
-    .feature-title { font-size: 13px; font-weight: 600; color: #0F172A; margin: 0 0 2px; }
-    .feature-desc { font-size: 12px; color: #94A3B8; margin: 0; }
-    .spacer { height: 16px; }
-    .share-btn { display: inline-block; background: #1E40AF; color: #ffffff; text-decoration: none; padding: 11px 28px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-top: 12px; }
+    body { width: 100% !important; margin: 0; padding: 0; background: #f3f5f8; color: #172033; font-family: Tahoma, Arial, sans-serif; direction: rtl; }
+    table { border-collapse: collapse; }
+    .email-shell { width: 100%; background: #f3f5f8; }
+    .email-container { width: 100%; max-width: 600px; background: #ffffff; border: 1px solid #e6eaf0; border-radius: 18px; overflow: hidden; }
+    .email-content { padding: 36px 42px; }
+    .email-footer { padding: 22px 36px; background: #f8fafc; border-top: 1px solid #e6eaf0; text-align: center; }
+    .greeting { font-size: 19px; font-weight: 700; line-height: 1.6; color: #172033; margin: 0 0 12px; }
+    .lead { font-size: 14px; color: #5f6b7a; line-height: 1.9; margin: 0 0 26px; }
+    .divider { border: 0; border-top: 1px solid #e9edf2; margin: 26px 0; }
+    .btn-wrap { text-align: center; margin: 0 0 26px; }
+    .btn { display: inline-block; padding: 14px 26px; border-radius: 10px; font-size: 14px; line-height: 1.4; font-weight: 700; text-decoration: none; font-family: Tahoma, Arial, sans-serif; }
+    .info-card { background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 12px; padding: 18px 20px; margin: 0 0 18px; }
+    .card-label { font-size: 11px; font-weight: 700; color: #758195; margin: 0 0 12px; }
+    .card-row { padding: 9px 0; border-bottom: 1px solid #e9edf2; line-height: 1.7; }
+    .card-row:last-child { border-bottom: 0; }
+    .card-key { font-size: 12px; color: #758195; display: inline-block; width: 40%; }
+    .card-val { font-size: 13px; font-weight: 600; color: #172033; }
+    .card-mono { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 1px; background: #edf1f6; padding: 4px 8px; border-radius: 5px; color: #344054; }
+    .notice { border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.8; margin: 0 0 16px; }
+    .notice-icon { font-size: 14px; margin-left: 7px; }
+    .notice-warn { background: #fff8e8; border: 1px solid #f4dfaa; color: #754d08; }
+    .notice-info { background: #eef5ff; border: 1px solid #d5e5fb; color: #244b7a; }
+    .notice-success { background: #edf8f1; border: 1px solid #ccebd6; color: #22613a; }
+    .link-box { background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; padding: 14px 16px; margin: 0 0 16px; }
+    .link-label { font-size: 11px; color: #758195; margin: 0 0 7px; }
+    .link-url { font-size: 12px; color: #2457a7; word-break: break-all; font-family: Arial, sans-serif; direction: ltr; text-align: left; }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 6px 11px; border-radius: 6px; margin: 0 0 18px; }
+    .stat-table { width: 100%; border-collapse: separate; border-spacing: 6px; margin: 0 0 18px; }
+    .stat-cell { background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; padding: 13px 14px; width: 50%; vertical-align: top; }
+    .stat-label { font-size: 11px; color: #758195; margin: 0 0 5px; }
+    .stat-val { font-size: 14px; font-weight: 700; line-height: 1.6; color: #172033; margin: 0; }
+    .ref-table { width: 100%; background: #f8fafc; border: 1px solid #e6eaf0; border-radius: 10px; margin: 0 0 18px; }
+    .ref-label { font-size: 11px; color: #758195; margin: 0 0 6px; }
+    .ref-val { font-size: 20px; font-weight: 700; font-family: 'Courier New', monospace; color: #172033; letter-spacing: 1px; margin: 0; }
+    .ref-status { font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 20px; white-space: nowrap; }
+    .ref-ok { background: #dff3e6; color: #22613a; }
+    .ref-no { background: #fde7e7; color: #922f35; }
+    .email-footer p { font-size: 11px; color: #7a8493; margin: 0 0 5px; line-height: 1.8; }
+    .email-footer a { color: #315d9b; text-decoration: none; }
+    .feature-table { width: 100%; border-collapse: collapse; margin: 0 0 22px; }
+    .feature-row td { padding: 11px 0; border-bottom: 1px solid #edf0f4; vertical-align: top; }
+    .feature-row:last-child td { border-bottom: 0; }
+    .feature-icon-cell { width: 46px; padding-left: 10px; }
+    .feature-icon-wrap { width: 34px; height: 34px; border-radius: 9px; background: #edf3fc; text-align: center; font-size: 16px; line-height: 34px; }
+    .feature-title { font-size: 13px; font-weight: 700; color: #172033; margin: 0 0 3px; }
+    .feature-desc { font-size: 12px; color: #758195; line-height: 1.6; margin: 0; }
+    .spacer { height: 10px; }
+    @media screen and (max-width: 620px) {
+      .email-container { border-radius: 0 !important; }
+      .email-content { padding: 26px 20px !important; }
+      .email-footer { padding: 20px !important; }
+      .stat-table { border-spacing: 0 !important; }
+      .stat-cell { display: block !important; width: 100% !important; }
+    }
   </style>
 `;
 
 // ─── Layout wrapper ───────────────────────────────────────────────
-function layout(headerBg, content, footerContent) {
+function layout(accentColor, preheader, content, footerContent) {
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -94,37 +130,44 @@ function layout(headerBg, content, footerContent) {
   <title>CheckMyDevice</title>
   ${BASE_STYLE}
 </head>
-<body>
-<div class="wrapper">
-  <div class="card">
-    <div class="header" style="background:${headerBg};">
-      <p class="logo">CheckMyDevice</p>
-      <p class="tagline">منصة فحص الأجهزة المحمولة</p>
-    </div>
-    <div class="body">
-      ${content}
-    </div>
-    <div class="footer">
-      ${footerContent}
-    </div>
-  </div>
-</div>
+<body style="width:100%;margin:0;padding:0;background:#f3f5f8;color:#172033;font-family:Tahoma,Arial,sans-serif;direction:rtl;">
+<div style="display:none;font-size:1px;color:#f3f5f8;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${escapeHtml(preheader)}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
+<table role="presentation" class="email-shell" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;background:#f3f5f8;">
+  <tr><td align="center" style="padding:28px 12px;">
+    <table role="presentation" class="email-container" width="600" border="0" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e6eaf0;border-radius:18px;overflow:hidden;">
+      <tr><td style="height:5px;background:${accentColor};font-size:0;line-height:0;">&nbsp;</td></tr>
+      <tr><td style="padding:25px 32px 20px;text-align:right;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+          <td align="center" valign="middle" style="width:38px;height:38px;border-radius:11px;background:#edf3fc;color:#204b87;font-size:17px;font-weight:700;">C</td>
+          <td valign="middle" style="padding-right:10px;">
+            <p style="font-family:Tahoma,Arial,sans-serif;font-size:17px;font-weight:700;color:#172f55;margin:0;">CheckMyDevice</p>
+            <p style="font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#758195;margin:3px 0 0;">منصة فحص الأجهزة المحمولة</p>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td class="email-content" style="padding:30px 42px;">${content}</td></tr>
+      <tr><td class="email-footer" style="padding:22px 36px;background:#f8fafc;border-top:1px solid #e6eaf0;text-align:center;">${footerContent}</td></tr>
+    </table>
+    <p style="font-family:Tahoma,Arial,sans-serif;font-size:10px;line-height:1.7;color:#8993a1;margin:14px 8px 0;">رسالة آلية من CheckMyDevice، يرجى عدم الرد عليها مباشرة.</p>
+  </td></tr>
+</table>
 </body>
 </html>`;
 }
 
 // ─── Verification Email ───────────────────────────────────────────
 export async function sendVerificationEmail(email, name, token) {
-  const url         = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const url         = frontendUrl(`verify-email?token=${encodeURIComponent(token)}`);
+  const safeUrl     = escapeHtml(url);
   const displayName = escapeHtml(name || 'عزيزي المستخدم');
 
   const content = `
     <p class="greeting">مرحباً، ${displayName} 👋</p>
     <p class="lead">
-      شكراً لتسجيلك في <strong>CheckMyDevice</strong>. حسابك جاهز تقريباً — كل ما تحتاجه هو تأكيد بريدك الإلكتروني للبدء.
+      شكراً لتسجيلك في <strong>CheckMyDevice</strong>. يمكنك استخدام حسابك الآن، وننصحك بتأكيد بريدك الإلكتروني للمساعدة في حمايته واستعادة الوصول إليه.
     </p>
     <div class="btn-wrap">
-      <a href="${url}" class="btn" style="background:#1E40AF;color:#ffffff;">تأكيد البريد الإلكتروني</a>
+      <a href="${safeUrl}" class="btn" style="background:#2457a7;color:#ffffff;">تأكيد البريد الإلكتروني</a>
     </div>
     <hr class="divider">
     <table class="feature-table">
@@ -143,7 +186,7 @@ export async function sendVerificationEmail(email, name, token) {
     </table>
     <div class="link-box">
       <p class="link-label">أو انسخ الرابط في متصفحك</p>
-      <p class="link-url">${url}</p>
+      <p class="link-url">${safeUrl}</p>
     </div>
     <div class="spacer"></div>
     <div class="notice notice-warn">
@@ -154,30 +197,31 @@ export async function sendVerificationEmail(email, name, token) {
 
   const footer = `
     <p>إذا لم تقم بإنشاء هذا الحساب، يمكنك تجاهل هذا البريد بأمان.</p>
-    <p>© 2026 CheckMyDevice · <a href="${process.env.FRONTEND_URL}/privacy">سياسة الخصوصية</a></p>
+    <p>© ${new Date().getFullYear()} CheckMyDevice · <a href="${escapeHtml(frontendUrl('privacy'))}">سياسة الخصوصية</a></p>
   `;
 
   await safeSend({
     from:    FROM(),
     to:      email,
     subject: '✅ تأكيد بريدك الإلكتروني — CheckMyDevice',
-    html:    layout('#0F172A', content, footer),
+    html:    layout('#315f9f', 'أكد بريدك الإلكتروني لتعزيز حماية حسابك في CheckMyDevice.', content, footer),
   });
 }
 
 // ─── Password Reset Email ─────────────────────────────────────────
 export async function sendPasswordResetEmail(email, name, token) {
-  const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  const url = frontendUrl(`reset-password?token=${encodeURIComponent(token)}`);
+  const safeUrl = escapeHtml(url);
 
   const content = `
-    <p class="greeting">إعادة تعيين كلمة المرور</p>
+    <p class="greeting">مرحباً، ${escapeHtml(name || 'عزيزي المستخدم')}</p>
     <p class="lead">
       تلقّينا طلباً لإعادة تعيين كلمة المرور الخاصة بحساب
       <strong>${escapeHtml(email)}</strong>.
       اضغط على الزر أدناه لاختيار كلمة مرور جديدة.
     </p>
     <div class="btn-wrap">
-      <a href="${url}" class="btn" style="background:#991B1B;color:#ffffff;">إعادة تعيين كلمة المرور</a>
+      <a href="${safeUrl}" class="btn" style="background:#a83b43;color:#ffffff;">إعادة تعيين كلمة المرور</a>
     </div>
     <hr class="divider">
     <div class="notice notice-warn" style="margin-bottom:16px;">
@@ -186,7 +230,7 @@ export async function sendPasswordResetEmail(email, name, token) {
     </div>
     <div class="link-box" style="margin-bottom:16px;">
       <p class="link-label">أو انسخ الرابط في متصفحك</p>
-      <p class="link-url">${url}</p>
+      <p class="link-url">${safeUrl}</p>
     </div>
     <div class="notice notice-info">
       <span class="notice-icon">ℹ️</span>
@@ -196,14 +240,14 @@ export async function sendPasswordResetEmail(email, name, token) {
 
   const footer = `
     <p>طُلب هذا الإجراء بواسطة حساب مرتبط بهذا البريد الإلكتروني.</p>
-    <p>© 2026 CheckMyDevice · <a href="${process.env.FRONTEND_URL}/privacy">سياسة الخصوصية</a></p>
+    <p>© ${new Date().getFullYear()} CheckMyDevice · <a href="${escapeHtml(frontendUrl('privacy'))}">سياسة الخصوصية</a></p>
   `;
 
   await safeSend({
     from:    FROM(),
     to:      email,
     subject: '🔐 إعادة تعيين كلمة المرور — CheckMyDevice',
-    html:    layout('#7F1D1D', content, footer),
+    html:    layout('#a83b43', 'رابط آمن لإعادة تعيين كلمة مرور حسابك.', content, footer),
   });
 }
 
@@ -243,7 +287,7 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
     ? new Date(searcherInfo.searchedAt).toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' })
     : new Date().toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' });
   const country      = escapeHtml(searcherInfo?.country || 'غير محدد');
-  const dashboardUrl = `${process.env.FRONTEND_URL}/reports`;
+  const dashboardUrl = escapeHtml(frontendUrl('reports'));
 
   const content = `
     <span class="badge" style="background:#FFF7ED;color:#9A3412;border:1px solid #FED7AA;">⚠️ تنبيه نشاط</span>
@@ -294,14 +338,14 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
 
   const footer = `
     <p>تلقّيت هذا البريد لأن جهازك مسجّل في قاعدة بياناتنا.</p>
-    <p>© 2026 CheckMyDevice · <a href="${process.env.FRONTEND_URL}/reports">إدارة البلاغات</a></p>
+    <p>© ${new Date().getFullYear()} CheckMyDevice · <a href="${dashboardUrl}">إدارة البلاغات</a></p>
   `;
 
   await safeSend({
     from:    FROM(),
     to:      ownerEmail,
     subject: '🔍 تنبيه: تم البحث عن جهازك — CheckMyDevice',
-    html:    layout('#0F172A', content, footer),
+    html:    layout('#315f9f', 'تم البحث عن جهاز مسجل في أحد بلاغاتك.', content, footer),
   });
 }
 
@@ -309,10 +353,9 @@ export async function sendDeviceSearchedAlert(ownerEmail, ownerName, deviceInfo,
 export async function sendReportStatusEmail(email, name, status, reportRef, adminNote) {
   const displayName  = escapeHtml(name || 'عزيزي المستخدم');
   const isApproved   = status === 'approved';
-  const dashboardUrl = `${process.env.FRONTEND_URL}/reports`;
+  const dashboardUrl = escapeHtml(frontendUrl('reports'));
   const safeNote     = adminNote ? escapeHtml(adminNote) : null;
 
-  const headerBg    = isApproved ? '#052e16' : '#450a0a';
   const badgeStyle  = isApproved
     ? 'background:#DCFCE7;color:#14532D;border:1px solid #BBF7D0;'
     : 'background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;';
@@ -335,14 +378,12 @@ export async function sendReportStatusEmail(email, name, status, reportRef, admi
     </div>
   ` : '';
 
-  // ── Share button (approved only) ────────────────────────────
-  const shareUrl = `${process.env.FRONTEND_URL}/search?q=`; // IMEI not available here — link to reports
   const bottomNotice = isApproved ? `
     <div class="notice notice-info">
       <span class="notice-icon">📢</span>
-      شارك رابط البحث عن جهازك — كلما انتشر، زادت فرصة العثور عليه.
+      تمت إضافة الجهاز إلى قاعدة البيانات، ويمكنك متابعة البلاغ وإدارته من حسابك.
       <br>
-      <a href="${dashboardUrl}" class="share-btn">مشاركة البلاغ</a>
+      <a href="${dashboardUrl}" class="btn" style="background:#2457a7;color:#ffffff;margin-top:12px;">عرض بلاغاتي</a>
     </div>
   ` : `
     <div class="notice notice-info">
@@ -376,13 +417,34 @@ export async function sendReportStatusEmail(email, name, status, reportRef, admi
 
   const footer = `
     <p>تلقّيت هذا البريد بخصوص بلاغ مسجّل في حسابك.</p>
-    <p>© 2026 CheckMyDevice · <a href="${process.env.FRONTEND_URL}/privacy">سياسة الخصوصية</a> · <a href="mailto:support@checkmydevice.online">الدعم الفني</a></p>
+    <p>© ${new Date().getFullYear()} CheckMyDevice · <a href="${escapeHtml(frontendUrl('privacy'))}">سياسة الخصوصية</a> · <a href="mailto:support@checkmydevice.online">الدعم الفني</a></p>
   `;
 
   await safeSend({
     from:    FROM(),
     to:      email,
     subject: `${isApproved ? '✅ تم قبول' : '❌ تم رفض'} بلاغك — CheckMyDevice`,
-    html:    layout(headerBg, content, footer),
+    html:    layout(isApproved ? '#36784d' : '#a83b43', isApproved ? 'تم قبول بلاغ جهازك.' : 'يوجد تحديث بخصوص بلاغ جهازك.', content, footer),
+  });
+}
+
+export async function sendSystemTestEmail(email) {
+  const sentAt = new Date().toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' });
+  const content = `
+    <p class="greeting">تم إعداد البريد بنجاح ✅</p>
+    <p class="lead">هذه رسالة اختبار من منصة CheckMyDevice للتأكد من اتصال خدمة البريد الإلكتروني.</p>
+    <div class="info-card">
+      <p class="card-label">تفاصيل الاختبار</p>
+      <div class="card-row"><span class="card-key">النتيجة</span><span class="card-val">تم إرسال الرسالة</span></div>
+      <div class="card-row"><span class="card-key">الوقت</span><span class="card-val">${escapeHtml(sentAt)}</span></div>
+    </div>
+  `;
+  const footer = `<p>أُرسلت هذه الرسالة بناءً على طلب مسؤول النظام.</p><p>© ${new Date().getFullYear()} CheckMyDevice</p>`;
+
+  return safeSend({
+    from: FROM(),
+    to: email,
+    subject: '✅ اختبار البريد الإلكتروني — CheckMyDevice',
+    html: layout('#315f9f', 'تم إعداد إرسال البريد الإلكتروني في CheckMyDevice.', content, footer),
   });
 }

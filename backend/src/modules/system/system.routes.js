@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { redisHealth, isRedisConnected } from '../../services/redis.service.js';
 import { query } from '../../db/pool.js';
 import { getCacheStats } from '../../services/deviceLookup.service.js';
+import { sendSystemTestEmail } from '../../services/email.service.js';
 import { authenticate, requireRole } from '../../middleware/auth.middleware.js';
 
 const router = Router();
@@ -80,21 +81,13 @@ router.get('/detailed', authenticate, requireRole('admin', 'super_admin'), async
 // GET /api/system/email-test — super admin only
 router.get('/email-test', authenticate, requireRole('super_admin'), async (req, res) => {
   if (!process.env.RESEND_API_KEY) {
-    return res.json({ success: false, error: 'RESEND_API_KEY غير محدد في environment variables' });
+    return res.status(503).json({ success: false, error: 'RESEND_API_KEY غير محدد في environment variables' });
   }
-  try {
-    const { Resend } = await import('resend');
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const result = await resend.emails.send({
-      from:    process.env.EMAIL_FROM || 'CheckMyDevice <onboarding@resend.dev>',
-      to:      req.user.email || 'test@example.com',
-      subject: '✅ اختبار Resend — CheckMyDevice',
-      html:    `<div dir="rtl"><h2 style="color:#1B4F9B">الإيميل يعمل ✅</h2><p>الوقت: ${new Date().toLocaleString('ar-EG')}</p></div>`,
-    });
-    res.json({ success: true, message: `تم الإرسال إلى ${req.user.email}`, id: result.data?.id });
-  } catch (err) {
-    res.json({ success: false, error: err.message });
+  const sent = await sendSystemTestEmail(req.user.email);
+  if (!sent) {
+    return res.status(502).json({ success: false, error: 'تعذر إرسال رسالة الاختبار. تحقق من إعدادات Resend والنطاق المرسل.' });
   }
+  res.json({ success: true, message: `تم الإرسال إلى ${req.user.email}` });
 });
 
 export default router;
