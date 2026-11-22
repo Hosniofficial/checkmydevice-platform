@@ -154,6 +154,10 @@ try {
   let loginRequests = 0;
   let verificationResends = 0;
   let registerRequests = 0;
+  let forgotPasswordRequests = 0;
+  let plansRequests = 0;
+  let plansRequestsFail = false;
+  let plansResponseMalformed = false;
   let profileUpdates = 0;
   let passwordChanges = 0;
   let sessionUser = null;
@@ -202,6 +206,10 @@ try {
     } else if (url.pathname === '/api/auth/register' && request.method() === 'POST') {
       registerRequests++;
       data.data = { message_ar: 'تم إنشاء الحساب التجريبي' };
+    } else if (url.pathname === '/api/auth/forgot-password' && request.method() === 'POST') {
+      forgotPasswordRequests++;
+      status = 503;
+      data = { success: false, error: { message_ar: 'تعذر إرسال البريد التجريبي' } };
     } else if (url.pathname === '/api/auth/me' && request.method() === 'PATCH') {
       profileUpdates++;
       sessionUser = { ...sessionUser, ...JSON.parse(request.postData() || '{}') };
@@ -216,7 +224,15 @@ try {
       searchPayloads.push(JSON.parse(request.postData() || '{}'));
       data.data = searchResult;
     } else if (url.pathname === '/api/plans') {
-      data.data = plans;
+      plansRequests++;
+      if (plansRequestsFail) {
+        status = 503;
+        data = { success: false, error: { message_ar: 'تعذر تحميل الخطط التجريبي' } };
+      } else if (plansResponseMalformed) {
+        data.data = {};
+      } else {
+        data.data = plans;
+      }
     } else if (url.pathname === '/api/reports' && request.method() === 'GET') {
       const pageNumber = Number(url.searchParams.get('page') || 1);
       data.data = {
@@ -381,6 +397,42 @@ try {
   });
   await page.waitForFunction(() => document.body.innerText.includes('990 ج.م'));
   console.log('PASS plans page loads API data and switches to annual prices');
+
+  plansRequestsFail = true;
+  await page.goto(`${baseUrl}/plans`, { waitUntil: 'networkidle0' });
+  await page.waitForFunction(() => document.body.innerText.includes('تعذر تحميل الخطط التجريبي'));
+  plansRequestsFail = false;
+  await page.click('#root button[type="button"]');
+  await page.waitForFunction(() => document.body.innerText.includes('أساسي'));
+  assert.equal(plansRequests, 3, 'Plans retry should make a new API request after a failure');
+  plansResponseMalformed = true;
+  await page.goto(`${baseUrl}/plans`, { waitUntil: 'networkidle0' });
+  await page.waitForFunction(() => document.body.innerText.includes('تعذر تحميل الخطط والأسعار'));
+  plansResponseMalformed = false;
+  await page.click('#root button[type="button"]');
+  await page.waitForFunction(() => document.body.innerText.includes('أساسي'));
+  assert.equal(plansRequests, 5, 'Malformed plans data should show an error and retry successfully');
+  console.log('PASS plans page reports API errors and retries successfully');
+
+  await page.goto(`${baseUrl}/forgot-password`, { waitUntil: 'networkidle0' });
+  await page.type('#forgot-password-email', 'not-an-email');
+  await page.click('#root button[type="submit"]');
+  await page.waitForFunction(() => document.body.innerText.includes('صيغة البريد الإلكتروني غير صحيحة'));
+  assert.equal(forgotPasswordRequests, 0, 'Invalid password reset email must not reach the API');
+  await replaceInput(page, '#forgot-password-email', 'reset.user@example.test');
+  await page.click('#root button[type="submit"]');
+  await page.waitForFunction(() => document.body.innerText.includes('تحقق من بريدك الإلكتروني'));
+  assert.equal(forgotPasswordRequests, 1, 'Password reset should send a valid email to the API');
+  assert(
+    !(await page.$eval('#root', (root) => root.innerText)).includes('تعذر إرسال البريد التجريبي'),
+    'Password reset errors must not reveal whether an email is registered',
+  );
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth),
+    false,
+    'Forgot-password confirmation should not overflow on a mobile viewport',
+  );
+  console.log('PASS forgot-password form validates input and preserves non-enumerating confirmation');
 
   const publicRoutes = [
     '/about',
@@ -645,11 +697,13 @@ try {
 
   await page.goto(`${baseUrl}/profile`, { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.querySelector('input[name="full_name"]'));
-  await page.click('#root button[type="submit"]');
-  await page.waitForFunction(() => document.body.innerText.includes('تم تحديث البيانات بنجاح'));
+  await replaceInput(page, 'input[name="full_name"]', 'حساب تجريبي');
+  await page.click('#profile-panel-profile button[type="submit"]');
+  await page.waitForFunction(() => document.querySelector('#profile-panel-profile button[type="submit"]')?.innerText.includes('تم الحفظ!'), { timeout: 5000 });
   assert.equal(profileUpdates, 1, 'Profile save should call the mocked profile endpoint once');
 
-  await page.click('#root button[aria-label="كلمة المرور"]');
+  await page.click('#profile-tab-password');
+  await page.waitForFunction(() => document.querySelector('#profile-tab-password')?.getAttribute('aria-pressed') === 'true', { timeout: 5000 });
   await page.waitForSelector('input[name="current_password"]');
   await page.type('input[name="current_password"]', 'CurrentPass123');
   await page.type('input[name="new_password"]', 'NewPass123');
@@ -667,7 +721,7 @@ try {
   await page.waitForFunction(() => document.body.innerText.includes('كلمتا المرور غير متطابقتين'));
   assert.equal(passwordChanges, 0, 'Mismatched password confirmation must not reach the API');
   await replaceInput(page, 'input[name="confirm_password"]', 'NewPass123');
-  await page.click('#root button[type="submit"]');
+  await page.click('#profile-panel-password button[type="submit"]');
   await page.waitForFunction(() => document.body.innerText.includes('تم تغيير كلمة المرور بنجاح'));
   assert.equal(passwordChanges, 1, 'Valid password change should call the mocked endpoint once');
   console.log('PASS login validation, mocked authentication, profile save, and password change');

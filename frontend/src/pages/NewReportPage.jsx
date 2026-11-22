@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Smartphone, Laptop, Tablet, Upload, Phone, ChevronLeft, ChevronRight,
          CheckCircle, X, Loader, Sparkles, AlertCircle, Info,
-         ShieldAlert, HelpCircle, FileText, Send } from 'lucide-react';
+         ShieldAlert, HelpCircle, FileText, Send, ShieldCheck, Clock3, LockKeyhole } from 'lucide-react';
 import { Field, Spinner } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
 import toast from 'react-hot-toast';
@@ -164,49 +164,70 @@ export default function NewReportPage() {
 
   // ── Done screen ────────────────────────────────────────────────
   if (done) return (
-    <div className="surface-card mx-auto my-10 max-w-md px-5 py-12 text-center sm:px-8">
-      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <CheckCircle className="w-12 h-12 text-green-600" />
-      </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">تم استلام بلاغك!</h2>
-      <p className="text-gray-500 text-sm mb-6 leading-relaxed">{done.message_ar}</p>
-      <div className="bg-primary-50 border border-primary-200 rounded-2xl px-6 py-4 my-6 inline-block">
-        <p className="text-xs text-primary-500 mb-1">رقم البلاغ</p>
-        <p className="text-xl font-bold font-mono text-primary-700 tracking-widest">{done.reference}</p>
-      </div>
-      <p className="text-xs text-gray-400 mb-6">احتفظ بهذا الرقم للمتابعة — سيتم مراجعة بلاغك خلال 24-48 ساعة</p>
-      <div className="flex gap-3 justify-center">
-        <button onClick={() => navigate('/reports')} className="btn-primary flex items-center gap-2">
-          <FileText className="w-4 h-4" /> بلاغاتي
-        </button>
-        <button onClick={() => navigate('/dashboard')} className="btn-outline">الرئيسية</button>
+    <div className="mx-auto flex min-h-[65vh] max-w-5xl items-center justify-center px-4 py-10">
+      <div className="surface-card w-full max-w-xl px-5 py-10 text-center sm:px-8 sm:py-12">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-green-50">
+          <CheckCircle className="h-10 w-10 text-green-600" />
+        </div>
+        <p className="text-sm font-semibold text-green-700">تم الإرسال بنجاح</p>
+        <h2 className="mt-2 text-2xl font-bold text-gray-900">تم استلام بلاغك</h2>
+        <p className="mt-2 text-sm leading-7 text-gray-500">{done.message_ar}</p>
+        <div className="my-6 inline-block rounded-2xl border border-primary-100 bg-primary-50 px-6 py-4">
+          <p className="mb-1 text-xs text-primary-600">رقم البلاغ</p>
+          <p className="font-mono text-xl font-bold tracking-widest text-primary-800">{done.reference}</p>
+        </div>
+        <p className="mb-6 text-xs leading-6 text-gray-500">احتفظ بهذا الرقم للمتابعة — سيتم مراجعة بلاغك خلال 24-48 ساعة.</p>
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <button onClick={() => navigate('/reports')} className="btn-primary flex items-center justify-center gap-2">
+            <FileText className="w-4 h-4" /> بلاغاتي
+          </button>
+          <button onClick={() => navigate('/dashboard')} className="btn-outline">لوحة التحكم</button>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-6">
-        <p className="text-sm font-semibold text-accent-500">مساعدة المجتمع</p>
-        <h1 className="mt-1 text-2xl font-bold text-primary-900">الإبلاغ عن جهاز</h1>
-        <p className="mt-2 text-sm leading-6 text-gray-500">أكمل الخطوات التالية لإرسال بلاغ عن جهاز مفقود أو مسروق.</p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+      <div className="mb-7 flex flex-col gap-5 rounded-3xl border border-[#e7e4dc] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+            <ShieldAlert className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-accent-500">مساعدة المجتمع</p>
+            <h1 className="mt-1 text-2xl font-bold text-primary-900">الإبلاغ عن جهاز</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">أكمل الخطوات لإبلاغ المجتمع عن جهاز مفقود أو مسروق، وتابع حالة البلاغ من حسابك.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 self-start rounded-xl bg-[#f7f6f2] px-3 py-2 text-xs font-medium text-gray-600 sm:self-center">
+          <Clock3 className="h-4 w-4 text-primary-700" aria-hidden="true" />
+          مراجعة البلاغ خلال 24–48 ساعة
+        </div>
       </div>
 
       {/* Step indicator */}
-      <p className="mb-3 text-xs font-medium text-gray-500 sm:hidden">
+      <p className="mb-3 text-xs font-medium text-gray-500 sm:hidden" role="status">
         الخطوة {step + 1} من {STEPS.length} · {STEPS[step]}
       </p>
-      <div className="flex items-center mb-8">
+      <div
+        className="mb-6 flex items-center rounded-2xl border border-[#e7e4dc] bg-white px-4 py-4 shadow-sm sm:mb-7 sm:px-6"
+        role="progressbar"
+        aria-label="تقدم تسجيل البلاغ"
+        aria-valuemin={1}
+        aria-valuemax={STEPS.length}
+        aria-valuenow={step + 1}
+      >
         {STEPS.map((label, i) => (
           <React.Fragment key={i}>
-            <div className="flex flex-col items-center min-w-0">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all
+            <div className="flex min-w-0 flex-col items-center" aria-current={i === step ? 'step' : undefined}>
+              <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all
                 ${i < step  ? 'bg-green-500 text-white shadow-sm shadow-green-200'
                 : i === step ? 'bg-primary-700 text-white shadow-sm shadow-primary-200 ring-4 ring-primary-100'
                 :              'bg-gray-100 text-gray-400'}`}>
                 {i < step ? <CheckCircle className="w-5 h-5" /> : i + 1}
               </div>
-              <span className={`text-xs mt-1.5 hidden sm:block font-medium transition-colors
+              <span className={`mt-1.5 hidden text-xs font-medium transition-colors sm:block
                 ${i === step ? 'text-primary-700' : i < step ? 'text-green-600' : 'text-gray-400'}`}>
                 {label}
               </span>
@@ -219,7 +240,8 @@ export default function NewReportPage() {
         ))}
       </div>
 
-      <div className="card">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(250px,0.8fr)] lg:gap-6">
+      <section className="surface-card min-w-0 p-5 sm:p-7" aria-label={STEPS[step]}>
 
         {/* ══ STEP 0: Device Info ══════════════════════════════════ */}
         {step === 0 && (
@@ -274,7 +296,7 @@ export default function NewReportPage() {
             {/* Report type */}
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">نوع البلاغ *</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
                   {
                     v: 'stolen',
@@ -367,7 +389,7 @@ export default function NewReportPage() {
             </Field>
 
             {/* Brand & Model — pre-filled if IMEI found */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="الماركة *">
                 <select className="input" value={form.brand} onChange={f('brand')}>
                   <option value="">اختر...</option>
@@ -388,7 +410,7 @@ export default function NewReportPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="اللون">
                 <input className="input" placeholder="أسود / أبيض"
                   value={form.color} onChange={f('color')}/>
@@ -401,7 +423,7 @@ export default function NewReportPage() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="الدولة *">
                 <select className="input" value={form.country_code} onChange={f('country_code')}>
                   {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
@@ -440,14 +462,14 @@ export default function NewReportPage() {
               </ul>
             </div>
 
-            <div onClick={() => fileRef.current.click()}
-              className="border-2 border-dashed border-gray-200 rounded-2xl p-10 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-all group">
-              <div className="w-14 h-14 bg-gray-100 group-hover:bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
-                <Upload className="w-7 h-7 text-gray-400 group-hover:text-primary-600 transition-colors"/>
-              </div>
-              <p className="text-sm text-gray-600 font-semibold group-hover:text-primary-700 transition-colors">اضغط لاختيار الصور</p>
-              <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — حتى 5MB لكل صورة — حتى 5 صور</p>
-            </div>
+            <button type="button" onClick={() => fileRef.current.click()}
+              className="group w-full rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center transition-all hover:border-primary-400 hover:bg-primary-50/50 sm:p-10">
+              <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 transition-colors group-hover:bg-primary-100">
+                <Upload className="h-7 w-7 text-gray-400 transition-colors group-hover:text-primary-600" aria-hidden="true" />
+              </span>
+              <span className="block text-sm font-semibold text-gray-700 transition-colors group-hover:text-primary-700">اضغط لاختيار الصور</span>
+              <span className="mt-1 block text-xs text-gray-500">JPG, PNG, WEBP — حتى 5MB لكل صورة — حتى 5 صور</span>
+            </button>
             <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={handleFiles}/>
 
             {files.length > 0 && (
@@ -479,7 +501,7 @@ export default function NewReportPage() {
               <Phone className="w-5 h-5 text-primary-700"/> بيانات التواصل
             </h2>
             <p className="text-sm text-gray-500">
-              ستُستخدم هذه البيانات لتمكين من يعثر على جهازك من التواصل معك مباشرة.
+              وسائل التواصل التي تضيفها هنا قد تظهر لمن يبحث عن الجهاز، لمساعدته على التواصل معك.
             </p>
 
             <Field label="رقم واتساب (مُفضَّل)">
@@ -505,7 +527,7 @@ export default function NewReportPage() {
                 </div>
               </label>
               {form.reward_offered && (
-                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-200">
+                <div className="mt-3 grid grid-cols-1 gap-3 border-t border-gray-200 pt-3 sm:grid-cols-2">
                   <Field label="المبلغ">
                     <input type="number" className="input" placeholder="500" min="1"
                       value={form.reward_amount} onChange={f('reward_amount')}/>
@@ -533,7 +555,7 @@ export default function NewReportPage() {
         )}
 
         {/* Navigation */}
-        <div className="mt-6 flex flex-col gap-3 border-t border-[#e7e4dc] pt-4 sm:flex-row sm:items-center">
+        <div className="mt-6 flex flex-col gap-3 border-t border-[#e7e4dc] pt-5 sm:flex-row sm:items-center">
           {step > 0 && (
             <button onClick={() => setStep(s => s - 1)} className="btn-outline flex w-full items-center justify-center gap-2 sm:w-auto">
               <ChevronRight className="w-4 h-4"/> السابق
@@ -551,6 +573,53 @@ export default function NewReportPage() {
             </button>
           )}
         </div>
+      </section>
+
+      <aside className="space-y-4 lg:sticky lg:top-24" aria-label="إرشادات البلاغ">
+        <div className="surface-card p-5 sm:p-6">
+          <p className="text-sm font-bold text-gray-900">كيف تتم مراجعة البلاغ؟</p>
+          <p className="mt-2 text-xs leading-6 text-gray-500">
+            أرسل بيانات دقيقة وصورة إثبات واضحة. يراجع فريقنا المعلومات قبل نشرها في نتائج البحث.
+          </p>
+          <div className="mt-5 space-y-4 border-t border-[#e7e4dc] pt-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                <FileText className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-semibold text-gray-800">أدخل بيانات الجهاز</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">IMEI أو الرقم التسلسلي مع الماركة والموديل.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-semibold text-gray-800">أرفق إثبات الملكية</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">صورة العلبة أو فاتورة الشراء تساعد على التحقق.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                <LockKeyhole className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-semibold text-gray-800">اختر بيانات التواصل</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">قد تظهر معلومات التواصل التي تضيفها في نتيجة البحث.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-primary-100 bg-primary-50/70 p-4">
+          <div className="flex items-start gap-2.5">
+            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-700" aria-hidden="true" />
+            <p className="text-xs leading-6 text-primary-900">
+              أضف وسيلة تواصل ترغب بمشاركتها لتسهيل الوصول إليك عند العثور على الجهاز.
+            </p>
+          </div>
+        </div>
+      </aside>
       </div>
     </div>
   );

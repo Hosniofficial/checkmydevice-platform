@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Smartphone, Laptop, Tablet, ChevronLeft } from 'lucide-react';
+import { Plus, FileText, Smartphone, Laptop, Tablet, ChevronLeft, AlertCircle, RefreshCw } from 'lucide-react';
 import { StatusBadge, Spinner, EmptyState, Pagination } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
 import { getCountryName } from '../lib/countries.js';
@@ -16,34 +16,67 @@ export default function MyReportsPage() {
   const [data, setData]       = useState(null);
   const [page, setPage]       = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  useEffect(() => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
-    api.get(`/reports?page=${page}&limit=10`)
-      .then(r => setData(r.data.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    setError(null);
+    try {
+      const response = await api.get(`/reports?page=${page}&limit=10`);
+      setData(response.data.data);
+    } catch (err) {
+      setError(err.response?.data?.error?.message_ar || 'تعذر تحميل بلاغاتك. تحقق من اتصالك ثم أعد المحاولة.');
+    } finally {
+      setLoading(false);
+    }
   }, [page]);
 
+  useEffect(() => { loadReports(); }, [loadReports]);
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
       {/* Header */}
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">بلاغاتي</h1>
-          {data?.meta?.total > 0 && (
-            <p className="text-sm text-gray-500 mt-0.5">{data.meta.total} بلاغ</p>
-          )}
+      <div className="mb-6 flex flex-col gap-5 rounded-3xl border border-[#e7e4dc] bg-white p-5 shadow-sm sm:mb-7 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+            <FileText className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-accent-500">متابعة الأجهزة</p>
+            <h1 className="mt-1 text-2xl font-bold text-primary-900">بلاغاتي</h1>
+            <p className="mt-2 text-sm leading-6 text-gray-500">تابع حالة البلاغات التي أرسلتها وأدر تفاصيل كل بلاغ.</p>
+          </div>
         </div>
-        <Link to="/reports/new" className="btn-primary flex w-full items-center justify-center gap-2 py-2 text-sm sm:w-auto sm:px-4">
-          <Plus className="w-4 h-4" /> بلاغ جديد
-        </Link>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          {data?.meta?.total > 0 && (
+            <span className="rounded-xl bg-[#f7f6f2] px-3 py-2 text-center text-xs font-medium text-gray-600">
+              {data.meta.total} بلاغ
+            </span>
+          )}
+          <Link to="/reports/new" className="btn-primary flex w-full items-center justify-center gap-2 py-2.5 text-sm sm:w-auto sm:px-4">
+            <Plus className="w-4 h-4" /> بلاغ جديد
+          </Link>
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner size={40} /></div>
+        <div className="surface-card flex min-h-56 items-center justify-center" role="status" aria-label="جاري تحميل البلاغات">
+          <Spinner size={40} />
+        </div>
+      ) : error ? (
+        <section className="surface-card flex flex-col items-center px-5 py-12 text-center" role="alert">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+            <AlertCircle className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-xl font-bold text-gray-900">تعذر تحميل البلاغات</h2>
+          <p className="mt-2 max-w-md text-sm leading-6 text-gray-500">{error}</p>
+          <button type="button" onClick={loadReports} className="btn-primary mt-5 inline-flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            إعادة المحاولة
+          </button>
+        </section>
       ) : !data?.items?.length ? (
-        <div className="card">
+        <div className="surface-card px-5 py-2">
           <EmptyState
             icon={FileText}
             title="لا توجد بلاغات"
@@ -63,7 +96,7 @@ export default function MyReportsPage() {
               const Icon = dt.icon;
               return (
                 <Link key={r.id} to={`/reports/${r.id}`}
-                  className="surface-card flex items-center gap-3 p-4 transition-colors group hover:border-primary-300 hover:bg-primary-50/50 sm:gap-4">
+                  className="surface-card group flex items-center gap-3 p-4 transition-all hover:-translate-y-0.5 hover:border-primary-200 hover:bg-white hover:shadow-md sm:gap-4">
 
                   {/* Device icon */}
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${dt.color}`}>

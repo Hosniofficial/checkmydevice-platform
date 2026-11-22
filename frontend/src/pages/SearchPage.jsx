@@ -140,7 +140,7 @@ function DeviceResultCard({ result }) {
   ].filter(x => x.value);
 
   return (
-    <div className={`surface-card overflow-hidden border ${cfg.border} fade-in`}>
+    <div className={`surface-card overflow-hidden border ${cfg.border} fade-in`} aria-live="polite">
 
       <div className="flex items-center justify-between bg-primary-700 px-5 py-3">
         <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ function DeviceResultCard({ result }) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {[
                   ['اللون',   r.color],
                   ['الدولة',  getCountryName(r.country)],
@@ -222,7 +222,7 @@ function DeviceResultCard({ result }) {
                 ].filter(([, v]) => v).map(([k, v]) => (
                   <div key={k}>
                     <span className="text-xs text-gray-400 block">{k}</span>
-                    <span className="text-sm font-medium text-gray-800">{v}</span>
+                    <span className="break-words text-sm font-medium text-gray-800">{v}</span>
                   </div>
                 ))}
               </div>
@@ -366,7 +366,7 @@ export default function SearchPage() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+          <form onSubmit={handleSubmit} role="search" className="flex flex-col gap-3 sm:flex-row">
             <div className="relative min-w-0 flex-1">
               <label htmlFor="search-query" className="mb-2 block text-sm font-semibold text-gray-700">
                 {queryType === 'imei' ? 'أدخل رقم IMEI' : 'أدخل الرقم التسلسلي'}

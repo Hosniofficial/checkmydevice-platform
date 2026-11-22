@@ -122,17 +122,23 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6">
-        <p className="text-sm font-semibold text-accent-500">حسابك</p>
-        <h1 className="mt-1 text-2xl font-bold text-primary-900">إعدادات الحساب</h1>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
+      <div className="mb-6 flex items-start gap-4 rounded-3xl border border-[#e7e4dc] bg-white p-5 shadow-sm sm:mb-7 sm:p-7">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-700">
+          <User className="h-6 w-6" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-accent-500">حسابك</p>
+          <h1 className="mt-1 text-2xl font-bold text-primary-900">إعدادات الحساب</h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500">حدّث بياناتك وأمّن حسابك وراجع خيارات الحساب.</p>
+        </div>
       </div>
 
       {/* Email verification banner */}
       {!user?.email_verified && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-          <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-            <AlertCircle className="w-5 h-5 text-amber-600" />
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5" role="status">
+          <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100">
+            <AlertCircle className="h-5 w-5 text-amber-600" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">بريدك الإلكتروني غير مفعّل</p>
@@ -159,9 +165,9 @@ export default function ProfilePage() {
       )}
 
       {/* User info bar */}
-      <div className="card flex items-center gap-4 mb-6">
-        <div className="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-          <User className="w-7 h-7 text-primary-700" />
+      <div className="surface-card mb-6 flex items-center gap-4 p-4 sm:p-5">
+        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-50">
+          <User className="h-7 w-7 text-primary-700" aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-900 truncate">{user?.full_name || '—'}</p>
@@ -179,23 +185,25 @@ export default function ProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-1 rounded-2xl bg-[#f0eee7] p-1">
+      <div className="mb-6 flex gap-1 rounded-2xl bg-[#f0eee7] p-1" role="group" aria-label="إعدادات الحساب">
         {TABS.map(({ id, label, icon: Icon }) => (
-          <button key={id} onClick={() => setActiveTab(id)} aria-label={label}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-medium transition-all
+          <button key={id} id={`profile-tab-${id}`} type="button" aria-label={label}
+            aria-pressed={activeTab === id}
+            onClick={() => setActiveTab(id)}
+            className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-medium transition-all sm:gap-2 sm:px-3 sm:text-sm
               ${activeTab === id
                 ? 'bg-white shadow text-primary-700'
-                : 'text-gray-500 hover:text-gray-700'}`}>
-            <Icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{label}</span>
+                : id === 'danger' ? 'text-red-600 hover:text-red-700' : 'text-gray-500 hover:text-gray-700'}`}>
+            <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
 
       {/* ── Tab: Profile ───────────────────────────────────────── */}
       {activeTab === 'profile' && (
-        <div className="card">
-          <h2 className="font-bold mb-5">البيانات الشخصية</h2>
+        <section id="profile-panel-profile" role="region" aria-labelledby="profile-tab-profile" className="surface-card p-5 sm:p-7">
+          <h2 className="mb-5 text-lg font-bold text-gray-900">البيانات الشخصية</h2>
           <form onSubmit={profileForm.handleSubmit(onSaveProfile)} className="space-y-4" noValidate>
             <Field label="البريد الإلكتروني">
               <input className="input bg-gray-50 cursor-not-allowed" value={user?.email} disabled dir="ltr" />
@@ -235,13 +243,13 @@ export default function ProfilePage() {
               {savingProfile ? 'جاري الحفظ...' : profileSaved ? 'تم الحفظ!' : 'حفظ التغييرات'}
             </button>
           </form>
-        </div>
+        </section>
       )}
 
       {/* ── Tab: Password ───────────────────────────────────────── */}
       {activeTab === 'password' && (
-        <div className="card">
-          <h2 className="font-bold mb-5">تغيير كلمة المرور</h2>
+        <section id="profile-panel-password" role="region" aria-labelledby="profile-tab-password" className="surface-card p-5 sm:p-7">
+          <h2 className="mb-5 text-lg font-bold text-gray-900">تغيير كلمة المرور</h2>
           <form onSubmit={pwForm.handleSubmit(onChangePassword)} className="space-y-4" noValidate>
             <PasswordInput
               register={pwForm.register}
@@ -274,13 +282,13 @@ export default function ProfilePage() {
               {savingPassword ? 'جاري الحفظ...' : 'تغيير كلمة المرور'}
             </button>
           </form>
-        </div>
+        </section>
       )}
 
       {/* ── Tab: Delete ─────────────────────────────────────────── */}
       {activeTab === 'danger' && (
-        <div className="card border-red-200">
-          <h2 className="font-bold text-red-700 mb-2">حذف الحساب</h2>
+        <section id="profile-panel-danger" role="region" aria-labelledby="profile-tab-danger" className="surface-card border-red-200 p-5 sm:p-7">
+          <h2 className="mb-2 text-lg font-bold text-red-700">حذف الحساب</h2>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
             سيتم حذف حسابك نهائياً وجميع بياناتك الشخصية خلال 30 يوماً.
             البلاغات المقبولة تبقى في قاعدة البيانات بصورة مجهولة الهوية لأسباب أمنية.
@@ -291,7 +299,7 @@ export default function ProfilePage() {
             <Trash2 className="w-4 h-4" />
             حذف حسابي نهائياً
           </button>
-        </div>
+        </section>
       )}
 
       <ConfirmDialog

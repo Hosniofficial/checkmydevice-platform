@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Zap, BadgeCheck, HelpCircle } from 'lucide-react';
+import { AlertCircle, Check, Zap, BadgeCheck, HelpCircle, RefreshCw } from 'lucide-react';
 import SEOHead from '../components/SEOHead.jsx';
 import { Spinner } from '../components/ui/index.jsx';
 import api from '../lib/api.js';
@@ -37,34 +37,43 @@ export default function PlansPage() {
   const [plans, setPlans]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [yearly, setYearly] = useState(false);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    let active = true;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
+    setLoading(true);
+    setError(null);
     api.get('/plans', { signal: controller.signal })
-      .then(r => setPlans(r.data.data))
-      .catch((err) => {
-        // Ignore AbortError (caused by timeout or component unmount)
-        if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
-          console.error('Plans loading failed:', err);
+      .then(r => {
+        if (!Array.isArray(r.data?.data)) {
+          throw new Error('Invalid plans response');
         }
-        setPlans([]); // ensure loading state clears even on failure
+        if (active) setPlans(r.data.data);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.response?.data?.error?.message_ar || 'تعذر تحميل الخطط والأسعار. تحقق من اتصالك ثم أعد المحاولة.');
       })
       .finally(() => {
         clearTimeout(timeout);
-        setLoading(false);
+        if (active) setLoading(false);
       });
 
-    return () => { clearTimeout(timeout); controller.abort(); };
-  }, []);
-
-  if (loading) return <div className="flex justify-center py-20"><Spinner size={40}/></div>;
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [retryCount]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
       <SEOHead page="plans" />
-      <div className="mb-8 rounded-3xl bg-primary-900 px-6 py-8 text-white sm:px-9 sm:py-10">
+      <div className="mb-7 rounded-3xl bg-primary-900 px-5 py-7 text-white sm:mb-8 sm:px-9 sm:py-10">
         <p className="text-sm font-semibold text-blue-200">خطط مرنة للأفراد والتجار</p>
         <h1 className="mt-2 text-3xl font-bold">الخطط والأسعار</h1>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-blue-100">
@@ -72,6 +81,31 @@ export default function PlansPage() {
         </p>
       </div>
 
+      {loading ? (
+        <div className="surface-card flex min-h-56 items-center justify-center" role="status" aria-label="جاري تحميل الخطط">
+          <Spinner size={40}/>
+        </div>
+      ) : error ? (
+        <section className="surface-card flex flex-col items-center px-5 py-12 text-center" role="alert">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+            <AlertCircle className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <h2 className="mt-4 text-xl font-bold text-gray-900">تعذر تحميل الخطط</h2>
+          <p className="mt-2 max-w-md text-sm leading-6 text-gray-500">{error}</p>
+          <button type="button" onClick={() => setRetryCount(count => count + 1)}
+            className="btn-primary mt-5 inline-flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            إعادة المحاولة
+          </button>
+        </section>
+      ) : plans.length === 0 ? (
+        <section className="surface-card px-5 py-10 text-center" role="status">
+          <p className="font-semibold text-gray-800">لا توجد خطط متاحة حالياً</p>
+          <p className="mt-2 text-sm text-gray-500">يرجى المحاولة لاحقاً أو التواصل مع فريقنا.</p>
+          <Link to="/contact" className="btn-outline mt-5 inline-flex px-5 py-2.5 text-sm">تواصل معنا</Link>
+        </section>
+      ) : (
+      <>
       {/* Billing toggle */}
       <div className="surface-card mb-8 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div>
@@ -180,6 +214,8 @@ export default function PlansPage() {
         ))}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
