@@ -160,13 +160,13 @@ export default function DashboardPage() {
       <div className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-l from-[#173e75] to-[#2d619f] p-5 text-white shadow-sm sm:mb-7 sm:p-8">
         <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-blue-100">مساحة حسابك</p>
+            <p className="text-sm font-semibold text-blue-100">نظرة عامة على حسابك</p>
             <h1 className="mt-1 text-2xl font-bold">
               مرحباً، {user?.full_name || user?.email} 👋
             </h1>
             <p className="mt-2 text-sm leading-6 text-blue-100">تابع بلاغاتك واستخدامك لخدمات CheckMyDevice من مكان واحد.</p>
           </div>
-          <Link to="/reports/new" className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-primary-800 transition-colors hover:bg-blue-50 sm:self-center">
+          <Link to="/reports/new" className="inline-flex min-h-11 items-center justify-center gap-2 self-start whitespace-nowrap rounded-xl border border-primary-100 bg-white px-4 py-2.5 text-sm font-bold text-primary-700 shadow-sm transition-colors hover:bg-primary-50 focus-visible:ring-offset-primary-900 sm:self-center">
             <Plus className="h-4 w-4" aria-hidden="true" />
             تسجيل بلاغ جديد
           </Link>

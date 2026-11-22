@@ -547,6 +547,18 @@ try {
         false,
         `${path} should not overflow at ${width}px`,
       );
+      if (path === '/dashboard') {
+        const reportButton = await page.$eval('main a[href="/reports/new"]', (button) => ({
+          text: button.innerText.trim(),
+          textColor: getComputedStyle(button).color,
+          backgroundColor: getComputedStyle(button).backgroundColor,
+          height: button.getBoundingClientRect().height,
+        }));
+        assert.equal(reportButton.text, 'تسجيل بلاغ جديد');
+        assert.equal(reportButton.textColor, 'rgb(27, 79, 155)', 'Report action text should use the visible brand color');
+        assert.equal(reportButton.backgroundColor, 'rgb(255, 255, 255)', 'Report action should retain its white background');
+        assert(reportButton.height >= 44, 'Report action should retain a comfortable touch target');
+      }
     }
   }
   console.log('PASS dashboard, reports, and report submission render on mobile and desktop');
