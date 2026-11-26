@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "dockerfile",
+    "dockerfile": "Dockerfile"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "startCommand": "node src/server.js"
+  }
+}
