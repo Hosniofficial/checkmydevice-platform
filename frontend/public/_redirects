@@ -1,0 +1,22 @@
+# Cloudflare Pages SPA Routing Configuration
+# This file handles client-side routing for React SPA
+
+# API routes - proxy to backend (if needed)
+/api/* https://checkmydevice.up.railway.app/api/:splat 200
+
+# Static assets - serve directly (must come before catch-all)
+/assets/* /assets/:splat 200
+/favicon.ico /favicon.ico 200
+/robots.txt /robots.txt 200
+/sitemap.xml /sitemap.xml 200
+/android-chrome-*.png /android-chrome-:splat.png 200
+/apple-touch-icon.png /apple-touch-icon.png 200
+/favicon-*.png /favicon-:splat.png 200
+/site.webmanifest /site.webmanifest 200
+/*.webp /:splat.webp 200
+/*.png /:splat.png 200
+/*.jpg /:splat.jpg 200
+/*.svg /:splat.svg 200
+
+# SPA Routes - all other routes serve index.html
+/* /index.html 200
