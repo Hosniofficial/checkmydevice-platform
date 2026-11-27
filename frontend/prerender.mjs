@@ -216,8 +216,12 @@ async function main() {
       if (route === '/') {
         writeFileSync(join(DIST, 'index.html'), html, 'utf8');
       } else if (route === '/_not-found') {
-        // Vercel serves dist/404.html with HTTP 404 status automatically
-        writeFileSync(join(DIST, '404.html'), html, 'utf8');
+        // Cloudflare Pages: 404.html must be index.html so _redirects SPA
+        // fallback still works for /login, /admin, etc.
+        // We copy index.html as 404.html so Cloudflare serves React and lets
+        // the router handle the actual 404 rendering client-side.
+        const indexHtml = readFileSync(join(DIST, 'index.html'), 'utf8');
+        writeFileSync(join(DIST, '404.html'), indexHtml, 'utf8');
       } else {
         const dir = join(DIST, route);
         mkdirSync(dir, { recursive: true });
